@@ -44,19 +44,80 @@
     right: 3%;
 }
 .mainBody{
-    display: block;
+    display: flex;
     margin-top: 80px;
 }
-.links{
-    display: flex;
-    text-align: left;
-}
-.linksList{
-    list-style: none;
-}
-li{
+
+.links li{
     margin-top: 10px;
+    font-size: 20px;
 }
 a{
     text-decoration: none;
 }
+.links ul {
+    list-style: none;
+    padding-left: 10px;
+}
+.header-container {
+    margin-left: 20%;
+    display: flex;
+    align-items: center; /* Align items on the same line */
+    flex-wrap: wrap; /* Allow the table to move to the next line */
+    /* gap: 10px; Adds space between elements */
+}
+
+.table-container {
+    width: 100%; /* Forces table to take full width and move below */
+    margin-top: 0px;
+}
+
+.table-container table{
+    font-size: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid black;
+    font-family: Arial, sans-serif;
+  }
+  
+  th, td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  th {
+    background-color: #f8f8f8;
+    font-weight: bold;
+  }
+    
+  .checkbox {
+    border: 2px solid black;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  .checkbox.checked {
+    background-color: black;
+  }
+  
+  .status {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  
+  .status.active {
+    background-color: green;
+  }
+  
+  .status.inactive {
+    background-color: lightgray;
+  }
+  
+  
