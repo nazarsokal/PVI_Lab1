@@ -1,0 +1,62 @@
+.navbarMain
+{
+    background-color: #9b9b9b;
+    width: auto;
+    display: inline-flex;
+    padding-right: 97%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    color:white
+}
+.rightNavbarNotificationLogo
+{
+    /* margin-left: 500%; */
+    margin-top: 15px;
+    position: absolute;
+    right: 15%;
+}
+.NavBarTitle
+{
+    margin-left: 20px;
+    color: white;
+}
+.notificationLogo
+{
+    width: 70%;
+}
+.userLogo
+{
+    margin-top: 15px;
+    width: 70%;
+    height: 50%; 
+}
+.AccountDetailsDiv{
+    position: absolute;
+    right: 10%;
+    width: 3%;
+    height: 100%;
+}
+.NavBarName
+{
+    color: white;
+    position: absolute;
+    right: 3%;
+}
+.mainBody{
+    display: block;
+    margin-top: 80px;
+}
+.links{
+    display: flex;
+    text-align: left;
+}
+.linksList{
+    list-style: none;
+}
+li{
+    margin-top: 10px;
+}
+a{
+    text-decoration: none;
+}
