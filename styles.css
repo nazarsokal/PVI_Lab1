@@ -119,5 +119,18 @@ table {
   .status.inactive {
     background-color: lightgray;
   }
-  
-  
+.addStudentsButton
+{
+  display: block;
+  margin-bottom: 5px;
+  margin-left: 95%;
+}
+.students-label{
+  display: block;
+}
+h2{
+  font-size: 30;
+}
+
+
+
