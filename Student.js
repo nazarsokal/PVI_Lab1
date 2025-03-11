@@ -1,8 +1,9 @@
 class Student
 {
-    constructor(group, name, gender, birthday, status)
+    constructor(group, firstName, lastName, gender, birthday, status)
     {
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.group = group;
         this.gender = gender;
         this.birthday = birthday;

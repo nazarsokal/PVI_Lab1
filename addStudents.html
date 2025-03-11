@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script href="script.js"></script>
     <title>Add Student</title>
     <style>
         body {
@@ -120,6 +121,8 @@
         // Handle form submission
         document.getElementById('add-student-form').addEventListener('submit', function(e) {
             e.preventDefault();
+    
+            // Collect all form values
             var formData = {
                 group: document.getElementById('group').value,
                 firstName: document.getElementById('first-name').value,
@@ -127,12 +130,53 @@
                 gender: document.getElementById('gender').value,
                 birthday: document.getElementById('birthday').value
             };
-            console.log('Form submitted with data:', formData);
-            // Optionally, pass data to the parent window
-            if (window.opener && typeof window.opener.setValue === 'function') {
-                window.opener.setValue(formData);
+    
+            // Basic validation to ensure required fields are filled
+            if (!formData.group || formData.group === 'Select Group') {
+                alert('Please select a group.');
+                return;
             }
-            window.close(); // Close the window after submission
+            if (!formData.firstName) {
+                alert('Please enter a first name.');
+                return;
+            }
+            if (!formData.lastName) {
+                alert('Please enter a last name.');
+                return;
+            }
+            if (!formData.gender || formData.gender === 'Select Gender') {
+                alert('Please select a gender.');
+                return;
+            }
+            if (!formData.birthday) {
+                alert('Please select a birthday.');
+                return;
+            }
+    
+            console.log('Form submitted with data:', formData);
+    
+            // Pass all data to the parent window
+            if (window.opener) {
+                console.log('window.opener exists:', window.opener);
+                if (typeof window.opener.setValue === 'function') {
+                    console.log('setValue function is available');
+                    try {
+                        window.opener.setValue(formData);
+                    } catch (error) {
+                        console.error('Error passing data to parent window:', error);
+                        alert(`127.0.0.1:5500 says Error passing data to parent window: ${error.message}`);
+                    }
+                } else {
+                    console.error('setValue function not found in parent window');
+                    alert('127.0.0.1:5500 says Error: setValue function not found in parent window');
+                }
+            } else {
+                console.error('Parent window not available');
+                alert('127.0.0.1:5500 says Error: Parent window not available');
+            }
+    
+            // Close the window after submission
+            window.close();
         });
     </script>
 </body>

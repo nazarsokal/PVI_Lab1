@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Students</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="script.js"></script>
 </head>
 <body>
 
-    <div class="navbarMain">
+    <nav class="navbarMain">
         <a href="/"><h2 class="NavBarTitle">CMS</h2></a>
         <div class="rightNavbarNotificationLogo">
             <img src="images/icons8-notification-50.png" class="notificationLogo"/>
@@ -20,22 +19,22 @@
         <div class="NavBarName">
             <h2>JamesBond</h2>
         </div>
-    </div>
+    </nav>
 
     <div class="mainBody">
-        <div class="links">
+        <nav class="links">
             <ul class="linksList">
                 <li>Dashboards</li>
                 <li>Students</li>
                 <li>Tasks</li>
             </ul>
-        </div>
+        </nav>
 
         <div class="header-container">
             <h1>Students</h1>
             <div class="addStudentsButton"><button onclick="openWindow()">+</button></div>
-            <div class="table-container">
-                <table>
+            <div class="table-container" id="mainTable">
+                <table id="tableStudents">
                     <thead>
                         <tr>
                             <th><input type="checkbox"></th>
@@ -63,5 +62,6 @@
         </div>
 
     </div>
+    <script src="script.js"></script>
 </body>
 </html>
