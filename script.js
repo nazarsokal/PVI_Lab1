@@ -6,21 +6,6 @@ class Student {
         this.gender = data.gender || 'Select Gender';
         this.birthday = data.birthday || '';
     }
-
-    getFullName() {
-        return `${this.firstName} ${this.lastName}`;
-    }
-
-    isAdult() {
-        const birthDate = new Date(this.birthday);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-        return age >= 18;
-    }
 }
 
 function openWindow() {
@@ -66,3 +51,44 @@ function deleteRow(button) {
         row.remove();
     }
 }
+
+// function changeImage()
+// {
+//     alert("HH");
+//     document.querySelector(".notificationLogo").src  = "images/bell.png";
+
+//     window.location.href = "messages.html";
+// }
+
+function loadComponent(id, file) {
+    fetch(file)
+        .then(response => response.text())
+        .then(data => document.getElementById(id).innerHTML = data);
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadComponent("header", "header.html");
+    loadComponent("footer", "footer.html");
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const bellIcon = document.getElementById("notificationBell");
+    
+    // Default image
+    const defaultSrc = "images/notification.png";
+    const newSrc = "images/bell.png";
+
+    // Retrieve stored image from sessionStorage (if exists)
+    const savedImage = sessionStorage.getItem("bellIconSrc") || defaultSrc;
+    bellIcon.src = savedImage;
+
+    // Function to change the image and redirect
+    bellIcon.addEventListener("click", function () {
+        bellIcon.src = newSrc; // Change image
+        sessionStorage.setItem("bellIconSrc", newSrc); // Save in sessionStorage
+
+        window.location.href = "/messages.html"; // Redirect
+    });
+});
+
