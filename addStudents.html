@@ -166,15 +166,8 @@
                         console.error('Error passing data to parent window:', error);
                         alert(`127.0.0.1:5500 says Error passing data to parent window: ${error.message}`);
                     }
-                } else {
-                    console.error('setValue function not found in parent window');
-                    alert('127.0.0.1:5500 says Error: setValue function not found in parent window');
-                }
-            } else {
-                console.error('Parent window not available');
-                alert('127.0.0.1:5500 says Error: Parent window not available');
-            }
-    
+                } 
+            } 
             // Close the window after submission
             window.close();
         });

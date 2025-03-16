@@ -19,8 +19,16 @@
                 alt="Notification Bell" 
                 class="notificationLogo"
                 onclick="changeImage()">
+
+            <div id="popup" class="popup">
+                <iframe id="messageFrame" src="messagesPopup.html"></iframe>
+            </div>
     
-            <img src="images/user.png" class="userLogo"/>
+            <img src="images/user.png" id="userLogo" class="userLogo"/>
+            
+            <div id="popupUser" class="popup">
+                <iframe src="userProfile.html"></iframe>
+            </div> 
             
             <h2 class="NavBarName">JamesBond</h2>
         </div>
@@ -42,7 +50,7 @@
                 <table id="tableStudents">
                     <thead>
                         <tr>
-                            <th><input type="checkbox"></th>
+                            <th><input type="checkbox" class="mainCheckBox"></th>
                             <th>Group</th>
                             <th>Name</th>
                             <th>Gender</th>
@@ -59,13 +67,27 @@
                             <td>M</td>
                             <td>16.04.2002</td>
                             <td><input type="radio" class="status"></td>
-                            <td><button>Edit</button><button>X</button></td>
+                            <td>
+                                <button>Edit</button>
+                                <button onclick="showDeleteConfirmation(this)">X</button>
+                            </td>
                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="deleteText"></p>
+            <div class="modal-buttons">
+                <button id="confirmDelete" onclick="confirmDelete()">OK</button>
+                <button>Cancel</button>
+            </div>
+        </div>
     </div>
     <script src="script.js" defer></script>
 </body>
