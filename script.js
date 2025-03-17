@@ -30,7 +30,8 @@ function setValue(data) {
     }
 
     var table = document.getElementById('tableStudents');
-    var isChecked = studentObj.firstName === "James" && studentObj.lastName === "Bond";
+    var name = document.querySelector(".NavBarName").textContent.split(" ");
+    var isChecked = studentObj.firstName === name[0] && studentObj.lastName === name[1];
 
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
@@ -70,9 +71,46 @@ notificationBell.addEventListener("click", function () {
     window.location.href = "/messages.html";
 });
 
+let angle = 0;
 notificationBell.addEventListener("mouseenter", function() {
     popup.style.display = "block";
+
+    requestAnimationFrame(rotateElement());
 });
+
+var listLinks = document.querySelectorAll(".linksListElems");
+
+listLinks.forEach(function(li){
+    li.addEventListener("mouseenter", function(){
+        this.style.color = "blue";
+        this.style.fontStyle = "italic";
+    });
+    
+    li.addEventListener("mouseleave", function() {
+        this.style.color = "black";
+        this.style.fontStyle = "normal";
+    });
+})
+
+function rotateElement()
+{
+    let angle = 0;
+    let direction = 1;
+    
+    const interval = setInterval(() => {
+        angle += direction * 10; 
+        notificationBell.style.rotate = `${angle}deg`;
+
+        if (angle >= 20 || angle <= -20) {
+            direction *= -1; 
+        }
+    }, 100);
+
+    setTimeout(() => {
+        clearInterval(interval); 
+        notificationBell.style.rotate = "0deg";
+    }, 2000);
+}
 
 document.querySelector(".navbar-right").addEventListener("mouseleave", function() {
     popup.style.display = "none";
@@ -98,7 +136,14 @@ let studentToDelete = null;
 
 function showDeleteConfirmation(button) {
     const row = button.closest("tr");
-    const studentName = row.children[2].textContent; 
+    const checkbox = row.querySelector(".checkbox"); 
+
+    if (!checkbox.checked) {
+        alert("Please select the student before deleting."); 
+        return;
+    }
+
+    const studentName = row.children[2].textContent;
 
     document.getElementById("deleteText").textContent = `Are you sure you want to delete student "${studentName}"?`;
 
@@ -106,23 +151,31 @@ function showDeleteConfirmation(button) {
 
     document.getElementById("deleteModal").style.display = "block";
 
-    document.getElementById("confirmDelete").addEventListener("click", function () {
+    document.getElementById("confirmDelete").onclick = function () {
         studentToDelete.remove();
         closeModal();
-    });
+    };
 }
+
+document.getElementById("cancelDelete").addEventListener("click", closeModal());
 
 function closeModal() {
     document.getElementById("deleteModal").style.display = "none"; 
     studentToDelete = null; 
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    var mainCheckBox = document.getElementById("mainCheckBox");
 
-var mainCheckBox = document.getElementById("mainCheckBox").addEventListener("change", function() {
-    document.querySelectorAll(".checkbox").forEach(checkbox => {
-        checkbox.checked = this.checked;
+    mainCheckBox.addEventListener("change", function () {
+        let checkboxes = document.querySelectorAll(".checkbox");
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = mainCheckBox.checked;
+        });
     });
 });
+
+
 
 function loadComponent(id, file) {
     fetch(file)

@@ -4,27 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link href="styles.css">
+    <style>
+        .messageContainer {
+            color: grey; /* Apply grey color to all text inside */
+        }
+
+        .MessageTitle {
+            text-align: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: #444; /* Darker grey for better visibility */
+        }
+
+        .MessageText {
+            text-align: center;
+            font-size: 16px;
+            color: #777; /* Lighter grey */
+        }
+        ul{
+            list-style: none;
+        }
+        .Message{
+            
+        }
+        li{
+            border: 1px solid black;
+            margin-right: 30px;
+        }
+    </style>
 </head>
 <body>
-<div>
+<div class="messageContainer">
     <ul>
         <li>
-            <div>
-                <h1>Message1</h1>
-                <p>Some Message</p>
+            <div class="Message">
+                <h1 class="MessageTitle">Message1</h1>
+                <p class="MessageText">Some Message</p>
             </div>
         </li>
         <li>
-            <div>
-                <h1>Message2</h1>
-                <p>Some Message</p>
+            <div class="Message">
+                <h1 class="MessageTitle">Message2</h1>
+                <p class="MessageText">Some Message</p>
             </div>
         </li>
         <li>
-            <div>
-                <h1>Message3</h1>
-                <p>Some Message</p>
+            <div class="Message">
+                <h1 class="MessageTitle">Message3</h1>
+                <p class="MessageText">Some Message</p>
             </div>
         </li>
     </ul>
