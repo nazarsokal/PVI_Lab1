@@ -227,10 +227,18 @@ h2 {
 
 @media (max-width: 1024px) {
   .navbarMain {
-      flex-direction: column;
+      flex-direction: row;
       text-align: center;
       padding: 10px;
       height: auto;
+  }
+
+  .links ul {
+    list-style: none;
+    padding-left: 10px;
+    flex-direction: row;
+    display: flex;
+    gap: 10px;
   }
 
   .navbar-right {
@@ -251,8 +259,16 @@ h2 {
 
 @media (max-width: 768px) {
   .navbarMain {
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
+  }
+
+  .links ul {
+    list-style: none;
+    padding-left: 10px;
+    flex-direction: row;
+    display: flex;
+    gap: 10px;
   }
 
   .navbar-right {
@@ -276,6 +292,11 @@ h2 {
       margin-right: auto;
       display: block;
   }
+
+  .NavBarName{
+    display: none;
+  }
+
 }
 
 @media (max-width: 480px) {
@@ -306,6 +327,11 @@ h2 {
   .addStudentsButton {
       font-size: 0.9rem;
   }
+
+  .NavBarName{
+    display: none;
+  }
+
 }
 
 
