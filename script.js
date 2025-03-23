@@ -7,15 +7,12 @@ class Student {
         this.birthday = data.birthday || '';
     }
 }
+function openPopup() {
+    document.getElementById('addStudentModal').style.display = 'flex';
+}
 
-function openWindow() {
-    const screenWidth = window.screen.width;
-    const screenHeight = window.screen.height;
-
-    const left = (screenWidth - 400) / 2;
-    const top = (screenHeight - 600) / 2;
-
-    var newWindow = window.open("addStudents.html", null, `height=600,width=400,top=${top},left=${left},status=yes,toolbar=no,menubar=no,location=center`);
+function closePopup() {
+    document.getElementById('addStudentModal').style.display = 'none';
 }
 
 function setValue(data) {
@@ -53,6 +50,7 @@ function setValue(data) {
         newRow.querySelector(".status").checked = true; 
     }
 
+    closePopup();
 }
 
 let notificationBell = document.getElementById("notificationBell");
@@ -164,22 +162,23 @@ function closeModal() {
     studentToDelete = null; 
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    var mainCheckBox = document.getElementById("mainCheckBox");
-
-    mainCheckBox.addEventListener("change", function () {
-        let checkboxes = document.querySelectorAll(".checkbox");
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = mainCheckBox.checked;
-        });
-    });
-});
-
-
-
 function loadComponent(id, file) {
     fetch(file)
         .then(response => response.text())
         .then(data => document.getElementById(id).innerHTML = data);
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const mainCheckBox = document.querySelector(".mainCheckBox");
+    const tableBody = document.querySelector("#tableStudents tbody");
+
+    function updateRowCheckboxes() {
+        const rowCheckBoxes = tableBody.querySelectorAll(".checkbox");
+        rowCheckBoxes.forEach(checkbox => {
+            checkbox.checked = mainCheckBox.checked;
+        });
+    }
+
+    mainCheckBox.addEventListener("change", updateRowCheckboxes);
+});
 
