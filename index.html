@@ -18,8 +18,18 @@
                 src="images/notification.png" 
                 alt="Notification Bell" 
                 class="notificationLogo"
-                onclick="changeImage()">
+                onclick="changeImage()"/>
+
+            <div id="popup" class="popup">
+                <iframe id="messageFrame" src="messagesPopup.html"></iframe>
+            </div>
+
             <img src="images/user.png" id="userLogo" alt="UserLogo" class="userLogo"/>
+
+            <div id="popupUser" class="popup">
+                <iframe src="userProfile.html"></iframe>
+            </div> 
+
             <h2 class="NavBarName">James Bond</h2>
         </div>
     </nav>
@@ -42,7 +52,7 @@
                 <table id="tableStudents">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" class="mainCheckBox"></th>
+                            <th><input type="checkbox" class="mainCheckBox" id="mainCheckBox"><label style="visibility: hidden;" for="mainCheckBox">lb</label></th>
                             <th>Group</th>
                             <th>Name</th>
                             <th>Gender</th>
@@ -53,23 +63,23 @@
                     </thead>
                     <tbody>
                        <tr>
-                            <td><input type="checkbox" class="checkbox"></td>
+                            <td><input type="checkbox" class="checkbox" id="checkbox"><label style="visibility: hidden;" for="checkbox">lb</label></td>
                             <td>PZ-24</td>
                             <td>Student1</td>
                             <td>M</td>
                             <td>16.04.2002</td>
-                            <td><input type="radio" class="status"></td>
+                            <td><input type="radio" class="status" id="status"><label style="visibility: hidden;" for="status">lb</label></td>
                             <td>
-                                <button>Edit</button>
-                                <button onclick="showDeleteConfirmation(this)">X</button>
+                                <button class="bottomButtons">Edit</button>
+                                <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
                             </td>
                        </tr>
                     </tbody>
                 </table>
                 <div style="margin-top: 5px; display: flex; justify-content: center;">
-                    <button><</button>
-                    <button>1</button>
-                    <button>></button>
+                    <button class="bottomButtons"><</button>
+                    <button class="bottomButtons">1</button>
+                    <button class="bottomButtons">></button>
                 </div>
             </div>
         </div>

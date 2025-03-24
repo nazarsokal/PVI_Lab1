@@ -13,14 +13,14 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  color: white;
+  color: black;
   z-index: 1000;
   height: 60px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .NavBarTitle h2 {
-  color: white;
+  color: black;
   margin: 0;
   font-size: 1.5rem;
 }
@@ -40,7 +40,7 @@ body {
 }
 
 .NavBarName {
-  color: white;
+  color: black;
   font-size: 1rem;
   font-weight: bold;
   margin: 0;
@@ -205,6 +205,11 @@ h2 {
 
 .close-btn:hover {
   color: #d9534f;
+}
+
+.bottomButtons{
+  font-size: 16px;
+  margin-left: 10px;
 }
 
 iframe {

@@ -7,6 +7,11 @@ class Student {
         this.birthday = data.birthday || '';
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("addStudentModal").style.display = "none"; // Ensure modal is hidden
+});
+
 function openPopup() {
     document.getElementById('addStudentModal').style.display = 'flex';
 }
@@ -32,15 +37,15 @@ function setValue(data) {
 
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="checkbox" class="checkbox"></td>
+        <td><input type="checkbox" class="checkbox" id="checkbox"><label style="visibility: hidden;" for="checkbox">lb</label></td>
         <td>${studentObj.group}</td>
         <td>${studentObj.firstName} ${studentObj.lastName}</td> 
         <td>${studentObj.gender}</td>
         <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
-        <td><input type="radio" class="status"></td>
+        <td><input type="radio" class="status" id="status"><label style="visibility: hidden;" for="status">lb</label></td>
         <td>
-            <button>Edit</button>
-            <button onclick="showDeleteConfirmation(this)">X</button>
+            <button class="bottomButtons">Edit</button>
+            <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
         </td>
     `;
 
@@ -133,27 +138,27 @@ function editRow(button) {
 let studentToDelete = null; 
 
 function showDeleteConfirmation(button) {
-    const row = button.closest("tr");
-    const checkbox = row.querySelector(".checkbox"); 
+    const table = document.getElementById("tableStudents");
+    const checkboxes = table.querySelectorAll(".checkbox:checked"); 
+    const selectedRows = Array.from(checkboxes).map(checkbox => checkbox.closest("tr"));
 
-    if (!checkbox.checked) {
-        alert("Please select the student before deleting."); 
+    if (selectedRows.length === 0) {
+        alert("Please select at least one student before deleting."); 
         return;
     }
 
-    const studentName = row.children[2].textContent;
+    const studentNames = selectedRows.map(row => row.children[2].textContent).join(", ");
 
-    document.getElementById("deleteText").textContent = `Are you sure you want to delete student "${studentName}"?`;
-
-    studentToDelete = row;
+    document.getElementById("deleteText").textContent = `Are you sure you want to delete the selected students: "${studentNames}"?`;
 
     document.getElementById("deleteModal").style.display = "block";
 
     document.getElementById("confirmDelete").onclick = function () {
-        studentToDelete.remove();
+        selectedRows.forEach(row => row.remove());
         closeModal();
     };
 }
+
 
 document.getElementById("cancelDelete").addEventListener("click", closeModal());
 
