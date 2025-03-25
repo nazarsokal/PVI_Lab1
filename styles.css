@@ -144,6 +144,11 @@ h2 {
   font-size: 1.8rem;
 }
 
+#popupUser{
+  width: 200px;
+  height: 100px;
+}
+
 .popup {
   display: none;
   position: absolute;
