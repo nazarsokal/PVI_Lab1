@@ -20,6 +20,8 @@ function closePopup() {
     document.getElementById('addStudentModal').style.display = 'none';
 }
 
+var i = 0;
+
 function setValue(data) {
     console.log('Received form data in parent window:', data);
 
@@ -37,12 +39,12 @@ function setValue(data) {
 
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td><input type="checkbox" class="checkbox" id="checkbox"><label style="visibility: hidden;" for="checkbox">lb</label></td>
+        <td><input type="checkbox" class="checkbox" id="checkbox${i}"><label style="visibility: hidden;" for="checkbox${i}">lb</label></td>
         <td>${studentObj.group}</td>
         <td>${studentObj.firstName} ${studentObj.lastName}</td> 
         <td>${studentObj.gender}</td>
         <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
-        <td><input type="radio" class="status" id="status"><label style="visibility: hidden;" for="status">lb</label></td>
+        <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
         <td>
             <button class="bottomButtons">Edit</button>
             <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
@@ -54,6 +56,8 @@ function setValue(data) {
     if (isChecked) {
         newRow.querySelector(".status").checked = true; 
     }
+    
+    i++;
 
     closePopup();
 }

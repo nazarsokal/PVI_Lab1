@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Document</title>
+</head>
+<body>
+    <nav class="navbarMain">
+        <a href="/" class="NavBarTitle">
+            <h2>CMS</h2>
+        </a>
+    
+        <div class="navbar-right">
+            <img id="notificationBell" 
+                src="images/notification.png" 
+                alt="Notification Bell" 
+                class="notificationLogo"
+                onclick="changeImage()"/>
+    
+            <div id="popup" class="popup">
+                <iframe id="messageFrame" src="messagesPopup.html"></iframe>
+            </div>
+    
+            <img src="images/user.png" id="userLogo" alt="UserLogo" class="userLogo"/>
+    
+            <div id="popupUser" class="popup">
+                <iframe src="userProfile.html"></iframe>
+            </div> 
+    
+            <h2 class="NavBarName">James Bond</h2>
+        </div>
+    </nav>
+
+    <div class="mainBody">
+        <nav class="links">
+            <ul class="linksList">
+                <a href="dashboard.html" style="color: black; text-decoration: none;"><li class="linksListElems">Dashboards</li></a>
+                <a href="index.html" style="color: black; text-decoration: none;"><li class="linksListElems">Students</li></a>
+                <a href="#" style="color: grey; text-decoration: none;"><li class="linksListElems">Tasks</li></a>
+            </ul>
+        </nav>
+
+        <h1 style="margin-left: 100px;">Tasks</h1>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
