@@ -9,11 +9,26 @@ class Student {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("addStudentModal").style.display = "none"; // Ensure modal is hidden
+    document.getElementById("addStudentModal").style.display = "none";
 });
 
-function openPopup() {
+function openPopup(rowIndex = null) {
     document.getElementById('addStudentModal').style.display = 'flex';
+    document.getElementById('addStudentModal').setAttribute('data-editing-index', rowIndex);
+    
+    if (rowIndex !== null) {
+        const row = document.querySelector(`#tableStudents tbody`).rows[rowIndex];
+        const cells = row.cells;
+        
+        document.getElementById('group').value = cells[1].textContent;
+        const nameParts = cells[2].textContent.split(" ");
+        document.getElementById('first-name').value = nameParts[0];
+        document.getElementById('last-name').value = nameParts[1];
+        document.getElementById('gender').value = cells[3].textContent;
+        document.getElementById('birthday').value = cells[4].textContent.split(".").reverse().join("-");
+    } else {
+        document.getElementById('add-student-form').reset();
+    }
 }
 
 function closePopup() {
@@ -26,41 +41,85 @@ function setValue(data) {
     console.log('Received form data in parent window:', data);
 
     const studentObj = new Student(data);
+    const table = document.getElementById('tableStudents');
+    const tbody = table.querySelector("tbody");
+    const form = document.getElementById('addStudentModal');
 
-    var table = document.getElementById('mainTable');
-    if (!table) {
-        console.error('Table with ID "mainTable" not found.');
+    if (!form) {
+        console.error('Form element not found!');
         return;
     }
 
-    var table = document.getElementById('tableStudents');
-    var name = document.querySelector(".NavBarName").textContent.split(" ");
-    var isChecked = studentObj.firstName === name[0] && studentObj.lastName === name[1];
+    let editingIndex = form.getAttribute('data-editing-index');
 
-    const newRow = document.createElement("tr");
-    newRow.innerHTML = `
-        <td><input type="checkbox" class="checkbox" id="checkbox${i}"><label style="visibility: hidden;" for="checkbox${i}">lb</label></td>
-        <td>${studentObj.group}</td>
-        <td>${studentObj.firstName} ${studentObj.lastName}</td> 
-        <td>${studentObj.gender}</td>
-        <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
-        <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
-        <td>
-            <button class="bottomButtons">Edit</button>
-            <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
-        </td>
-    `;
+    // Ensure editingIndex is a number
+    editingIndex = editingIndex !== "null" && editingIndex !== null ? parseInt(editingIndex, 10) : null;
 
-    table.querySelector("tbody").appendChild(newRow);
+    if (editingIndex !== null && !isNaN(editingIndex) && tbody.rows[editingIndex]) {
+        // Update existing row
+        console.log(`Updating student at index ${editingIndex}`);
+        const row = tbody.rows[editingIndex];
+        row.cells[1].textContent = studentObj.group;
+        row.cells[2].textContent = `${studentObj.firstName} ${studentObj.lastName}`;
+        row.cells[3].textContent = studentObj.gender;
+        row.cells[4].textContent = studentObj.birthday.split("-").reverse().join(".");
+    } else {
+        // Add new row
+        console.log("Adding new student");
 
-    if (isChecked) {
-        newRow.querySelector(".status").checked = true; 
+        // Ensure `i` is properly defined
+        if (typeof i === "undefined") {
+            window.i = tbody.rows.length; // Start from existing row count
+        }
+
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td><input type="checkbox" class="checkbox" id="checkbox${i}"><label style="visibility: hidden;" for="checkbox${i}">lb</label></td>
+            <td>${studentObj.group}</td>
+            <td>${studentObj.firstName} ${studentObj.lastName}</td>
+            <td>${studentObj.gender}</td>
+            <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
+            <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
+            <td>
+                <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
+                <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+        i++;
     }
-    
-    i++;
+
+    // Reset editing index after action
+    form.setAttribute('data-editing-index', "null");
 
     closePopup();
 }
+
+
+
+function updateStudent(row, data) {
+    if (!row) return;
+
+    row.cells[1].textContent = data.group;
+    row.cells[2].textContent = `${data.firstName} ${data.lastName}`;
+    row.cells[3].textContent = data.gender;
+    row.cells[4].textContent = data.birthday.split("-").reverse().join(".");
+}
+
+function editStudent(button) {
+    var row = button.closest("tr");
+
+    var studentData = {
+        group: row.cells[1].textContent,
+        firstName: row.cells[2].textContent.split(" ")[0],
+        lastName: row.cells[2].textContent.split(" ")[1],
+        gender: row.cells[3].textContent,
+        birthday: row.cells[4].textContent.split(".").reverse().join("-") // Convert back to YYYY-MM-DD
+    };
+
+    openPopup(studentData, row);
+}
+
 
 let notificationBell = document.getElementById("notificationBell");
 let popup = document.getElementById("popup");
