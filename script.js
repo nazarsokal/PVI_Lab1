@@ -1,5 +1,6 @@
 class Student {
     constructor(data) {
+        this.id = data.id || Date.now(); // Генеруємо унікальний ID, якщо його немає
         this.group = data.group || 'Select Group';
         this.firstName = data.firstName || '';
         this.lastName = data.lastName || '';
@@ -8,6 +9,7 @@ class Student {
     }
 }
 
+// Очікуємо завантаження документа
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("addStudentModal").style.display = "none";
 });
@@ -15,11 +17,12 @@ document.addEventListener("DOMContentLoaded", function () {
 function openPopup(rowIndex = null) {
     document.getElementById('addStudentModal').style.display = 'flex';
     document.getElementById('addStudentModal').setAttribute('data-editing-index', rowIndex);
-    
+
     if (rowIndex !== null) {
         const row = document.querySelector(`#tableStudents tbody`).rows[rowIndex];
         const cells = row.cells;
-        
+
+        document.getElementById('student-id').value = row.getAttribute('data-id');
         document.getElementById('group').value = cells[1].textContent;
         const nameParts = cells[2].textContent.split(" ");
         document.getElementById('first-name').value = nameParts[0];
@@ -28,6 +31,7 @@ function openPopup(rowIndex = null) {
         document.getElementById('birthday').value = cells[4].textContent.split(".").reverse().join("-");
     } else {
         document.getElementById('add-student-form').reset();
+        document.getElementById('student-id').value = "";
     }
 }
 
@@ -35,10 +39,30 @@ function closePopup() {
     document.getElementById('addStudentModal').style.display = 'none';
 }
 
+// Валідація форми перед збереженням
+function validateForm(data) {
+    const nameRegex = /^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/;
+    const groupRegex = /^[A-Za-z0-9-]+$/;
+
+    if (!nameRegex.test(data.firstName) || !nameRegex.test(data.lastName)) {
+        alert("First and Last Name should contain only letters and special characters like '-.");
+        return false;
+    }
+    if (!groupRegex.test(data.group)) {
+        alert("Group should contain only letters, numbers, and hyphens.");
+        return false;
+    }
+    return true;
+}
+
 var i = 0;
 
 function setValue(data) {
     console.log('Received form data in parent window:', data);
+
+    if (!validateForm(data)) {
+        return;
+    }
 
     const studentObj = new Student(data);
     const table = document.getElementById('tableStudents');
@@ -51,30 +75,24 @@ function setValue(data) {
     }
 
     let editingIndex = form.getAttribute('data-editing-index');
-
-    // Ensure editingIndex is a number
     editingIndex = editingIndex !== "null" && editingIndex !== null ? parseInt(editingIndex, 10) : null;
 
     if (editingIndex !== null && !isNaN(editingIndex) && tbody.rows[editingIndex]) {
-        // Update existing row
+        // Оновлення існуючого студента
         console.log(`Updating student at index ${editingIndex}`);
         const row = tbody.rows[editingIndex];
+        row.setAttribute('data-id', studentObj.id);
         row.cells[1].textContent = studentObj.group;
         row.cells[2].textContent = `${studentObj.firstName} ${studentObj.lastName}`;
         row.cells[3].textContent = studentObj.gender;
         row.cells[4].textContent = studentObj.birthday.split("-").reverse().join(".");
     } else {
-        // Add new row
+        // Додавання нового студента
         console.log("Adding new student");
-
-        // Ensure `i` is properly defined
-        if (typeof i === "undefined") {
-            window.i = tbody.rows.length; // Start from existing row count
-        }
-
         const newRow = document.createElement("tr");
+        newRow.setAttribute('data-id', studentObj.id);
         newRow.innerHTML = `
-            <td><input type="checkbox" class="checkbox" id="checkbox${i}"><label style="visibility: hidden;" for="checkbox${i}">lb</label></td>
+            <td><input type="checkbox" class="checkbox"></td>
             <td>${studentObj.group}</td>
             <td>${studentObj.firstName} ${studentObj.lastName}</td>
             <td>${studentObj.gender}</td>
@@ -86,15 +104,27 @@ function setValue(data) {
             </td>
         `;
         tbody.appendChild(newRow);
-        i++;
     }
 
-    // Reset editing index after action
-    form.setAttribute('data-editing-index', "null");
+    // Вивід зміненого JSON-об'єкта в консоль
+    console.log("Updated Student List:");
+    let studentList = [];
+    document.querySelectorAll("#tableStudents tbody tr").forEach(row => {
+        studentList.push({
+            id: row.getAttribute("data-id"),
+            group: row.cells[1].textContent,
+            firstName: row.cells[2].textContent.split(" ")[0],
+            lastName: row.cells[2].textContent.split(" ")[1],
+            gender: row.cells[3].textContent,
+            birthday: row.cells[4].textContent.split(".").reverse().join("-")
+        });
+    });
+    console.log(JSON.stringify(studentList, null, 2));
 
+    form.setAttribute('data-editing-index', "null");
+    i++;
     closePopup();
 }
-
 
 
 function updateStudent(row, data) {
