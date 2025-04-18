@@ -17,12 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
 function openPopup(rowIndex = null) {
     document.getElementById('addStudentModal').style.display = 'flex';
     document.getElementById('addStudentModal').setAttribute('data-editing-index', rowIndex);
-
+    
     if (rowIndex !== null) {
         const row = document.querySelector(`#tableStudents tbody`).rows[rowIndex];
         const cells = row.cells;
-
-        document.getElementById('student-id').value = row.getAttribute('data-id');
+        
         document.getElementById('group').value = cells[1].textContent;
         const nameParts = cells[2].textContent.split(" ");
         document.getElementById('first-name').value = nameParts[0];
@@ -31,28 +30,12 @@ function openPopup(rowIndex = null) {
         document.getElementById('birthday').value = cells[4].textContent.split(".").reverse().join("-");
     } else {
         document.getElementById('add-student-form').reset();
-        document.getElementById('student-id').value = "";
     }
 }
+
 
 function closePopup() {
     document.getElementById('addStudentModal').style.display = 'none';
-}
-
-// Валідація форми перед збереженням
-function validateForm(data) {
-    const nameRegex = /^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/;
-    const groupRegex = /^[A-Za-z0-9-]+$/;
-
-    if (!nameRegex.test(data.firstName) || !nameRegex.test(data.lastName)) {
-        alert("First and Last Name should contain only letters and special characters like '-.");
-        return false;
-    }
-    if (!groupRegex.test(data.group)) {
-        alert("Group should contain only letters, numbers, and hyphens.");
-        return false;
-    }
-    return true;
 }
 
 var i = 0;
@@ -60,11 +43,43 @@ var i = 0;
 function setValue(data) {
     console.log('Received form data in parent window:', data);
 
-    if (!validateForm(data)) {
-        return;
-    }
-
     const studentObj = new Student(data);
+
+
+    
+
+    console.log("New Student");
+    console.log(JSON.stringify(studentObj));
+
+    fetch('server/api/students/create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(studentObj)
+    })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error: ', error));  
+
+    // // Вивід зміненого JSON-об'єкта в консоль
+    // // console.log("Updated Student List:");
+    // let studentList = [];
+    // document.querySelectorAll("#tableStudents tbody tr").forEach(row => {
+    //     studentList.push({
+    //         id: row.getAttribute("data-id"),
+    //         group: row.cells[1].textContent,
+    //         firstName: row.cells[2].textContent.split(" ")[0],
+    //         lastName: row.cells[2].textContent.split(" ")[1],
+    //         gender: row.cells[3].textContent,
+    //         birthday: row.cells[4].textContent.split(".").reverse().join("-")
+    //     });
+    // });
+    // // console.log(JSON.stringify(studentList, null, 2));
+
+
+}
+
+function GetStudents()
+{
     const table = document.getElementById('tableStudents');
     const tbody = table.querySelector("tbody");
     const form = document.getElementById('addStudentModal');
@@ -87,45 +102,50 @@ function setValue(data) {
         row.cells[3].textContent = studentObj.gender;
         row.cells[4].textContent = studentObj.birthday.split("-").reverse().join(".");
     } else {
-        // Додавання нового студента
-        console.log("Adding new student");
-        const newRow = document.createElement("tr");
-        newRow.setAttribute('data-id', studentObj.id);
-        newRow.innerHTML = `
-            <td><input type="checkbox" class="checkbox"></td>
-            <td>${studentObj.group}</td>
-            <td>${studentObj.firstName} ${studentObj.lastName}</td>
-            <td>${studentObj.gender}</td>
-            <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
-            <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
-            <td>
-                <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
-                <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
-            </td>
-        `;
-        tbody.appendChild(newRow);
+        if(studentObj.firstName === "Nazar" || studentObj.lastName === "Sokalchuk")
+        {
+            const newRow = document.createElement("tr");
+            newRow.setAttribute('data-id', studentObj.id);
+            newRow.innerHTML = `
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>${studentObj.group}</td>
+                <td style="color: blue;">"${studentObj.firstName} ${studentObj.lastName}"</td>
+                <td>${studentObj.gender}</td>
+                <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
+                <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
+                <td>
+                    <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
+                    <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
+                </td>
+            `;
+            tbody.appendChild(newRow);   
+        }
+        else
+        {
+            // Додавання нового студента
+            console.log("Adding new student");
+            const newRow = document.createElement("tr");
+            newRow.setAttribute('data-id', studentObj.id);
+            newRow.innerHTML = `
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>${studentObj.group}</td>
+                <td>${studentObj.firstName} ${studentObj.lastName}</td>
+                <td>${studentObj.gender}</td>
+                <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
+                <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
+                <td>
+                    <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
+                    <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+        }
     }
-
-    // Вивід зміненого JSON-об'єкта в консоль
-    console.log("Updated Student List:");
-    let studentList = [];
-    document.querySelectorAll("#tableStudents tbody tr").forEach(row => {
-        studentList.push({
-            id: row.getAttribute("data-id"),
-            group: row.cells[1].textContent,
-            firstName: row.cells[2].textContent.split(" ")[0],
-            lastName: row.cells[2].textContent.split(" ")[1],
-            gender: row.cells[3].textContent,
-            birthday: row.cells[4].textContent.split(".").reverse().join("-")
-        });
-    });
-    console.log(JSON.stringify(studentList, null, 2));
 
     form.setAttribute('data-editing-index', "null");
     i++;
     closePopup();
 }
-
 
 function updateStudent(row, data) {
     if (!row) return;
@@ -279,4 +299,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     mainCheckBox.addEventListener("change", updateRowCheckboxes);
 });
+
 

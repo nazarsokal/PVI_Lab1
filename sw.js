@@ -2,9 +2,8 @@ const CACHE_NAME = 'student-management-cache-v4';
 
 const urlsToCache = [
     '/index.html',
-    '/style.css',
+    '/styles.css',
     '/script.js',
-    '/addStudents.html',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css',
     'https://code.jquery.com/jquery-3.6.0.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/webfonts/fa-solid-900.woff2',
@@ -65,7 +64,7 @@ self.addEventListener('fetch', event => {
                     return response;
                 }).catch(() => {
                     console.log('Fetch failed, serving fallback:', event.request.url);
-                    return caches.match('/file.html');
+                    return caches.match('/index.html');
                 });
             })
     );
