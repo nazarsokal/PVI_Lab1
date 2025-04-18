@@ -10,7 +10,12 @@ class StudentsController extends Controller {
     }
 
     public function index() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            $this->jsonResponse(['error' => 'Method not allowed'], 405);
+        }
+
         $students = $this->studentModel->getAll();
+        // error_log('StudentsFromDb: '. print_r($students, true));
         $this->jsonResponse($students);
     }
 

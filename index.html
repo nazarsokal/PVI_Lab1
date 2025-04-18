@@ -65,19 +65,7 @@
                             <th>Options</th>
                         </tr>
                     </thead>
-                    <tbody>
-                       <tr>
-                            <td><input type="checkbox" class="checkbox" id="checkbox"><label style="visibility: hidden;" for="checkbox">lb</label></td>
-                            <td>PZ-24</td>
-                            <td>Student1</td>
-                            <td>M</td>
-                            <td>16.04.2002</td>
-                            <td><input type="radio" class="status" id="status"><label style="visibility: hidden;" for="status">lb</label></td>
-                            <td>
-                                <button class="bottomButtons" onclick="editStudent(this)">Edit</button>
-                                <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
-                            </td>
-                       </tr>
+                    <tbody class="tbody">
                     </tbody>
                 </table>
                 <div style="margin-top: 5px; display: flex; justify-content: center;">
@@ -107,7 +95,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
     <!-- <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

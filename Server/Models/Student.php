@@ -10,12 +10,12 @@ class Student extends Model {
 
     public function create($data) {
         error_log("Data received: ". print_r($data, true));
-        $stmt = $this->db->prepare('INSERT INTO students (id, StudentGroup, firstname, lastname, gender, birthday) VALUES (:id, :StudentGroup, :firstname, :lastname, :gender, :birthday)');
+        $stmt = $this->db->prepare('INSERT INTO students (id, StudentGroup, firstName, lastName, gender, birthday) VALUES (:id, :StudentGroup, :firstName, :lastName, :gender, :birthday)');
         return $stmt->execute([
             'id' => $data['id'],
-            'StudentGroup' => $data['group'],
-            'firstname' => $data['firstName'],
-            'lastname' => $data['lastName'],
+            'StudentGroup' => $data['StudentGroup'],
+            'firstName' => $data['firstName'],
+            'lastName' => $data['lastName'],
             'gender' => $data['gender'],
             'birthday' => $data['birthday']
         ]);

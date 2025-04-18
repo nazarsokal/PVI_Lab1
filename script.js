@@ -1,16 +1,17 @@
 class Student {
-    constructor(data) {
-        this.id = data.id || Date.now(); // Генеруємо унікальний ID, якщо його немає
-        this.group = data.group || 'Select Group';
-        this.firstName = data.firstName || '';
-        this.lastName = data.lastName || '';
-        this.gender = data.gender || 'Select Gender';
-        this.birthday = data.birthday || '';
+    constructor(id, StudentGroup, firstName, lastName, gender, birthday) {
+        this.id = id || Date.now(); // Генеруємо унікальний ID, якщо його немає
+        this.StudentGroup = StudentGroup || 'Select Group';
+        this.firstName = firstName || '';
+        this.lastName = lastName || '';
+        this.gender = gender || 'Select Gender';
+        this.birthday = birthday || '';
     }
 }
 
 // Очікуємо завантаження документа
 document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM fully loaded. Running GetStudents...");
     document.getElementById("addStudentModal").style.display = "none";
 });
 
@@ -43,10 +44,8 @@ var i = 0;
 function setValue(data) {
     console.log('Received form data in parent window:', data);
 
-    const studentObj = new Student(data);
-
-
-    
+    const studentObj = new Student(data['id'], data['StudentGroup'] ,data['firstName'] ,data['lastName'],data['gender'],data['birthday']);
+    const form = document.getElementById('addStudentModal');
 
     console.log("New Student");
     console.log(JSON.stringify(studentObj));
@@ -59,6 +58,9 @@ function setValue(data) {
         .then(response => response.json())
         .then(data => console.log(data))
         .catch(error => console.error('Error: ', error));  
+
+    form.setAttribute('data-editing-index', "null");
+    closePopup();
 
     // // Вивід зміненого JSON-об'єкта в консоль
     // // console.log("Updated Student List:");
@@ -77,41 +79,49 @@ function setValue(data) {
 
 
 }
+let studensts = [];
 
 function GetStudents()
 {
+    fetch('server/api/students/index')
+    .then(response => {
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // Return the parsed JSON body
+        return response.json();
+    })
+        .then(jsonArray => {
+            console.log(jsonArray);
+            studensts = jsonArray.map(s => new Student(s.id, s.StudentGroup ,s.firstName, s.lastName, s.gender, s.birthday));
+            console.log('Students loaded', studensts);
+
+            InsertToTable(studensts);
+    })
+        .catch(error => console.error('Error: ', error));
+}
+
+function InsertToTable(studentList)
+{
     const table = document.getElementById('tableStudents');
     const tbody = table.querySelector("tbody");
-    const form = document.getElementById('addStudentModal');
 
-    if (!form) {
-        console.error('Form element not found!');
-        return;
-    }
-
-    let editingIndex = form.getAttribute('data-editing-index');
-    editingIndex = editingIndex !== "null" && editingIndex !== null ? parseInt(editingIndex, 10) : null;
-
-    if (editingIndex !== null && !isNaN(editingIndex) && tbody.rows[editingIndex]) {
-        // Оновлення існуючого студента
-        console.log(`Updating student at index ${editingIndex}`);
-        const row = tbody.rows[editingIndex];
-        row.setAttribute('data-id', studentObj.id);
-        row.cells[1].textContent = studentObj.group;
-        row.cells[2].textContent = `${studentObj.firstName} ${studentObj.lastName}`;
-        row.cells[3].textContent = studentObj.gender;
-        row.cells[4].textContent = studentObj.birthday.split("-").reverse().join(".");
-    } else {
-        if(studentObj.firstName === "Nazar" || studentObj.lastName === "Sokalchuk")
+    console.log('Students count', studentList.length);
+    for (let index = 0; index < studentList.length; index++) {
+        console.log(studentList[index]);
+        if(studentList[index].firstName === "Nazar" || studentList[index].lastName === "Sokalchuk")
         {
             const newRow = document.createElement("tr");
-            newRow.setAttribute('data-id', studentObj.id);
+            newRow.setAttribute('data-id', studentList[index].id);
             newRow.innerHTML = `
                 <td><input type="checkbox" class="checkbox"></td>
-                <td>${studentObj.group}</td>
-                <td style="color: blue;">"${studentObj.firstName} ${studentObj.lastName}"</td>
-                <td>${studentObj.gender}</td>
-                <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
+                <td>${studentList[index].StudentGroup}</td>
+                <td style="color: blue;">"${studentList[index].firstName} ${studentList[index].lastName}"</td>
+                <td>${studentList[index].gender}</td>
+                <td>${studentList[index].birthday.split("-").reverse().join(".")}</td>
                 <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
                 <td>
                     <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
@@ -122,16 +132,14 @@ function GetStudents()
         }
         else
         {
-            // Додавання нового студента
-            console.log("Adding new student");
             const newRow = document.createElement("tr");
-            newRow.setAttribute('data-id', studentObj.id);
+            newRow.setAttribute('data-id', studentList[index].id);
             newRow.innerHTML = `
                 <td><input type="checkbox" class="checkbox"></td>
-                <td>${studentObj.group}</td>
-                <td>${studentObj.firstName} ${studentObj.lastName}</td>
-                <td>${studentObj.gender}</td>
-                <td>${studentObj.birthday.split("-").reverse().join(".")}</td>
+                <td>${studentList[index].StudentGroup}</td>
+                <td>${studentList[index].firstName} ${studentList[index].lastName}</td>
+                <td>${studentList[index].gender}</td>
+                <td>${studentList[index].birthday.split("-").reverse().join(".")}</td>
                 <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
                 <td>
                     <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
@@ -139,12 +147,8 @@ function GetStudents()
                 </td>
             `;
             tbody.appendChild(newRow);
-        }
+        }   
     }
-
-    form.setAttribute('data-editing-index', "null");
-    i++;
-    closePopup();
 }
 
 function updateStudent(row, data) {
@@ -289,7 +293,7 @@ function loadComponent(id, file) {
 document.addEventListener("DOMContentLoaded", function () {
     const mainCheckBox = document.querySelector(".mainCheckBox");
     const tableBody = document.querySelector("#tableStudents tbody");
-
+    GetStudents();
     function updateRowCheckboxes() {
         const rowCheckBoxes = tableBody.querySelectorAll(".checkbox");
         rowCheckBoxes.forEach(checkbox => {
