@@ -1,7 +1,7 @@
 class Student {
     constructor(id, StudentGroup, firstName, lastName, gender, birthday) {
-        this.id = id || Date.now(); // Генеруємо унікальний ID, якщо його немає
-        this.StudentGroup = StudentGroup || 'Select Group';
+        this.id = id || Date.now();
+        this.StudentGroup = StudentGroup;
         this.firstName = firstName || '';
         this.lastName = lastName || '';
         this.gender = gender || 'Select Gender';
@@ -9,28 +9,134 @@ class Student {
     }
 }
 
-// Очікуємо завантаження документа
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM fully loaded. Running GetStudents...");
     document.getElementById("addStudentModal").style.display = "none";
+    document.getElementById("loginModal").style.display = "none";
+    updateUserSection();
+    setupLoginForm();
+    GetStudents();
 });
 
-function openPopup(rowIndex = null) {
-    document.getElementById('addStudentModal').style.display = 'flex';
-    document.getElementById('addStudentModal').setAttribute('data-editing-index', rowIndex);
-    
-    if (rowIndex !== null) {
-        const row = document.querySelector(`#tableStudents tbody`).rows[rowIndex];
-        const cells = row.cells;
-        
-        document.getElementById('group').value = cells[1].textContent;
-        const nameParts = cells[2].textContent.split(" ");
-        document.getElementById('first-name').value = nameParts[0];
-        document.getElementById('last-name').value = nameParts[1];
-        document.getElementById('gender').value = cells[3].textContent;
-        document.getElementById('birthday').value = cells[4].textContent.split(".").reverse().join("-");
+function updateUserSection() {
+    const userSection = document.getElementById("userSection");
+    const isLoggedIn = sessionStorage.getItem("loggedInUser");
+    if (isLoggedIn) {
+        userSection.innerHTML = `<h2 class="NavBarName">${isLoggedIn}</h2>`;
     } else {
-        document.getElementById('add-student-form').reset();
+        userSection.innerHTML = `<button onclick="openLoginModal()">Login</button>`;
+    }
+}
+
+function setupLoginForm() {
+    const loginForm = document.getElementById("loginForm");
+    loginForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        loginUser(username, password);
+    });
+}
+
+function loginUser(username, password) {
+    const student = students.find(s => 
+        `${s.firstName.toLowerCase()}_${s.lastName.toLowerCase()}` === username.toLowerCase() &&
+        s.birthday === password
+    );
+    if (student) {
+        sessionStorage.setItem("loggedInUser", `${student.firstName} ${student.lastName}`);
+        closeLoginModal();
+        updateUserSection();
+        alert("Login successful!");
+    } else {
+        alert("Invalid username or password.");
+    }
+}
+
+function openLoginModal() {
+    document.getElementById("loginModal").style.display = "block";
+}
+
+function closeLoginModal() {
+    document.getElementById("loginModal").style.display = "none";
+    document.getElementById("loginForm").reset();
+}
+
+function checkLogin(action) {
+    if (!sessionStorage.getItem("loggedInUser")) {
+        openLoginModal();
+        return false;
+    }
+    return true;
+}
+
+function openPopup(rowIndex = null) {
+    if (!checkLogin()) return;
+
+    // Show the modal in the parent page
+    const modal = document.getElementById('addStudentModal');
+    if (!modal) {
+        console.error('Modal with ID addStudentModal not found');
+        return;
+    }
+    modal.style.display = 'flex';
+
+    // Store the editing index on the modal
+    modal.setAttribute('data-editing-index', rowIndex);
+
+    // Access the iframe's content
+    const iframe = document.getElementById('studentIframe');
+    if (!iframe || !iframe.contentDocument) {
+        console.error('Iframe or iframe content not accessible');
+        return;
+    }
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+    // Log the rowIndex for debugging
+    console.log('rowIndex:', rowIndex);
+
+    if (rowIndex !== null) {
+        // Editing mode: Populate the form with table data
+        const table = document.querySelector('#tableStudents tbody');
+        if (!table) {
+            console.error('Table with ID tableStudents not found');
+            return;
+        }
+        const row = table.rows[rowIndex];
+        if (!row) {
+            console.error(`Row at index ${rowIndex} not found`);
+            return;
+        }
+        const cells = row.cells;
+
+        // Populate form fields in the iframe
+        iframeDoc.getElementById('StudentGroup').value = cells[1].textContent;
+        const nameParts = cells[2].textContent.replaceAll('"', '').split(' ');
+        iframeDoc.getElementById('first-name').value = nameParts[0];
+        iframeDoc.getElementById('last-name').value = nameParts[1] || '';
+        iframeDoc.getElementById('gender').value = cells[3].textContent;
+        // Convert date format from DD.MM.YYYY to YYYY-MM-DD
+        const dateParts = cells[4].textContent.split('.');
+        if (dateParts.length === 3) {
+            iframeDoc.getElementById('birthday').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+        }
+        console.log('Group from table:', cells[1].textContent);
+
+        // Set student ID
+        iframeDoc.getElementById('student-id').value = row.getAttribute('data-id') || '';
+        
+        // Update title to "Edit Student"
+        iframeDoc.getElementById('title').textContent = 'Edit Student';
+    } else {
+        // Adding mode: Reset the form
+        const form = iframeDoc.getElementById('add-student-form');
+        if (form) {
+            form.reset();
+            iframeDoc.getElementById('student-id').value = ''; // Clear ID
+            iframeDoc.getElementById('title').textContent = 'Add Student';
+        } else {
+            console.error('Form with ID add-student-form not found in iframe');
+        }
     }
 }
 
@@ -42,78 +148,67 @@ function closePopup() {
 var i = 0;
 
 function setValue(data) {
+    if (!checkLogin()) return;
     console.log('Received form data in parent window:', data);
 
-    const studentObj = new Student(data['id'], data['StudentGroup'] ,data['firstName'] ,data['lastName'],data['gender'],data['birthday']);
     const form = document.getElementById('addStudentModal');
+    const editingIndex = form.getAttribute('data-editing-index');
 
-    console.log("New Student");
-    console.log(JSON.stringify(studentObj));
+    const studentObj = new Student(
+        data['id'], data['StudentGroup'], data['firstName'],
+        data['lastName'], data['gender'], data['birthday']
+    );
 
-    fetch('server/api/students/create', {
-        method: 'POST',
+    console.log("Student Object", JSON.stringify(studentObj));
+
+    const url = editingIndex === "null" ? 'server/api/students/create' : 'server/api/students/update';
+    const method = 'POST';
+
+    fetch(url, {
+        method: method,
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(studentObj)
     })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error('Error: ', error));  
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        //GetStudents(); // Refresh the table
+    })
+    .catch(error => console.error('Error:', error));  
 
     form.setAttribute('data-editing-index', "null");
     closePopup();
-
-    // // Вивід зміненого JSON-об'єкта в консоль
-    // // console.log("Updated Student List:");
-    // let studentList = [];
-    // document.querySelectorAll("#tableStudents tbody tr").forEach(row => {
-    //     studentList.push({
-    //         id: row.getAttribute("data-id"),
-    //         group: row.cells[1].textContent,
-    //         firstName: row.cells[2].textContent.split(" ")[0],
-    //         lastName: row.cells[2].textContent.split(" ")[1],
-    //         gender: row.cells[3].textContent,
-    //         birthday: row.cells[4].textContent.split(".").reverse().join("-")
-    //     });
-    // });
-    // // console.log(JSON.stringify(studentList, null, 2));
-
-
 }
-let studensts = [];
 
-function GetStudents()
-{
+
+let students = [];
+
+function GetStudents() {
     fetch('server/api/students/index')
     .then(response => {
         console.log('Response status:', response.status);
-
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
-        // Return the parsed JSON body
         return response.json();
     })
         .then(jsonArray => {
             console.log(jsonArray);
-            studensts = jsonArray.map(s => new Student(s.id, s.StudentGroup ,s.firstName, s.lastName, s.gender, s.birthday));
-            console.log('Students loaded', studensts);
-
-            InsertToTable(studensts);
+            students = jsonArray.map(s => new Student(s.id, s.StudentGroup ,s.firstName, s.lastName, s.gender, s.birthday));
+            console.log('Students loaded', students);
+            InsertToTable(students);
     })
         .catch(error => console.error('Error: ', error));
 }
 
-function InsertToTable(studentList)
-{
+function InsertToTable(studentList) {
     const table = document.getElementById('tableStudents');
     const tbody = table.querySelector("tbody");
 
     console.log('Students count', studentList.length);
     for (let index = 0; index < studentList.length; index++) {
         console.log(studentList[index]);
-        if(studentList[index].firstName === "Nazar" || studentList[index].lastName === "Sokalchuk")
-        {
+        if(studentList[index].firstName === "Nazar" || studentList[index].lastName === "Sokalchuk") {
             const newRow = document.createElement("tr");
             newRow.setAttribute('data-id', studentList[index].id);
             newRow.innerHTML = `
@@ -129,9 +224,7 @@ function InsertToTable(studentList)
                 </td>
             `;
             tbody.appendChild(newRow);   
-        }
-        else
-        {
+        } else {
             const newRow = document.createElement("tr");
             newRow.setAttribute('data-id', studentList[index].id);
             newRow.innerHTML = `
@@ -161,6 +254,7 @@ function updateStudent(row, data) {
 }
 
 function editStudent(button) {
+    if (!checkLogin()) return;
     var row = button.closest("tr");
 
     var studentData = {
@@ -168,12 +262,11 @@ function editStudent(button) {
         firstName: row.cells[2].textContent.split(" ")[0],
         lastName: row.cells[2].textContent.split(" ")[1],
         gender: row.cells[3].textContent,
-        birthday: row.cells[4].textContent.split(".").reverse().join("-") // Convert back to YYYY-MM-DD
+        birthday: row.cells[4].textContent.split(".").reverse().join("-")
     };
 
     openPopup(studentData, row);
 }
-
 
 let notificationBell = document.getElementById("notificationBell");
 let popup = document.getElementById("popup");
@@ -187,15 +280,13 @@ notificationBell.src = savedImage;
 notificationBell.addEventListener("click", function () {
     notificationBell.src = newSrc;
     sessionStorage.setItem("bellIconSrc", newSrc); 
-
     window.location.href = "/messages.html";
 });
 
 let angle = 0;
 notificationBell.addEventListener("mouseenter", function() {
     popup.style.display = "block";
-
-    requestAnimationFrame(rotateElement());
+    requestAnimationFrame(rotateElement);
 });
 
 var listLinks = document.querySelectorAll(".linksListElems");
@@ -212,8 +303,7 @@ listLinks.forEach(function(li){
     });
 })
 
-function rotateElement()
-{
+function rotateElement() {
     let angle = 0;
     let direction = 1;
     
@@ -248,6 +338,7 @@ document.querySelector(".navbar-right").addEventListener("mouseleave", function(
 });
 
 function editRow(button) {
+    if (!checkLogin()) return;
     var row = button.parentNode.parentNode;
     alert(`Editing ${row.cells[2].textContent}`);
 }
@@ -255,6 +346,7 @@ function editRow(button) {
 let studentToDelete = null; 
 
 function showDeleteConfirmation(button) {
+    if (!checkLogin()) return;
     const table = document.getElementById("tableStudents");
     const checkboxes = table.querySelectorAll(".checkbox:checked"); 
     const selectedRows = Array.from(checkboxes).map(checkbox => checkbox.closest("tr"));
@@ -271,13 +363,32 @@ function showDeleteConfirmation(button) {
     document.getElementById("deleteModal").style.display = "block";
 
     document.getElementById("confirmDelete").onclick = function () {
-        selectedRows.forEach(row => row.remove());
+        const ids = selectedRows.map(row => row.getAttribute('data-id'));
+        console.log(ids);
+    
+        fetch('server/api/students/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: ids })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text().then(text => text ? JSON.parse(text) : {});
+        })
+        .then(data => {
+            console.log(data);
+            // GetStudents(); // Refresh table after deletion
+        })
+        .catch(error => console.error('Error:', error));
+        
         closeModal();
     };
+    
 }
 
-
-document.getElementById("cancelDelete").addEventListener("click", closeModal());
+document.getElementById("cancelDelete").addEventListener("click", closeModal);
 
 function closeModal() {
     document.getElementById("deleteModal").style.display = "none"; 
@@ -293,7 +404,6 @@ function loadComponent(id, file) {
 document.addEventListener("DOMContentLoaded", function () {
     const mainCheckBox = document.querySelector(".mainCheckBox");
     const tableBody = document.querySelector("#tableStudents tbody");
-    GetStudents();
     function updateRowCheckboxes() {
         const rowCheckBoxes = tableBody.querySelectorAll(".checkbox");
         rowCheckBoxes.forEach(checkbox => {
@@ -303,5 +413,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
     mainCheckBox.addEventListener("change", updateRowCheckboxes);
 });
-
-

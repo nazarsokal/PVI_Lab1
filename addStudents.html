@@ -73,8 +73,8 @@
         <h2 id="title">Add Student</h2>
         <form id="add-student-form">
             <div class="form-group">
-                <label for="group">Group</label>
-                <select id="group" name="group" required>
+                <label for="StudentGroup">Group</label>
+                <select id="StudentGroup" name="StudentGroup" required>
                     <option value="" disabled selected>Select Group</option>
                     <option value="group1">Group 1</option>
                     <option value="group2">Group 2</option>
@@ -114,146 +114,138 @@
         </form>
     </div>
     
+    <script src="script.js" defer></script>
     <script>
-        function validateInput(input, regex, errorMessageId) {
-            let errorMessage = document.getElementById(errorMessageId);
-            if (!regex.test(input.value.trim())) {
-                input.style.border = "2px solid red";
-                errorMessage.style.visibility = "visible";
-                return false;
-            } else {
-                input.style.border = "";
-                errorMessage.style.visibility = "hidden";
-                return true;
+        document.addEventListener('DOMContentLoaded', function() {
+            function validateInput(input, regex, errorMessageId) {
+                let errorMessage = document.getElementById(errorMessageId);
+                if (!regex.test(input.value.trim())) {
+                    input.style.border = "2px solid red";
+                    errorMessage.style.visibility = "visible";
+                    return false;
+                } else {
+                    input.style.border = "";
+                    errorMessage.style.visibility = "hidden";
+                    return true;
+                }
             }
-        }
-
-        document.getElementById('first-name').addEventListener('input', function() {
-            let firstNameError = document.getElementById('firstNameErrorMessage');
-            
-            if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.value)) {
-                this.style.border = "2px solid red";
-                firstNameError.textContent = "First name cannot be an email.";
-                firstNameError.style.visibility = "visible";
-            } else if (!/^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/.test(this.value.trim())) {
-                this.style.border = "2px solid red";
-                firstNameError.textContent = "Invalid first name.";
-                firstNameError.style.visibility = "visible";
-            } else {
-                this.style.border = "";
-                firstNameError.style.visibility = "hidden";
-            }
-        });
-
-        // Last Name Validation
-        document.getElementById('last-name').addEventListener('input', function() {
-            let lastNameError = document.getElementById('lastNameErrorMessage');
-
-            if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.value)) {
-                this.style.border = "2px solid red";
-                lastNameError.textContent = "Last name cannot be an email.";
-                lastNameError.style.visibility = "visible";
-            } else if (!/^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/.test(this.value.trim())) {
-                this.style.border = "2px solid red";
-                lastNameError.textContent = "Invalid last name.";
-                lastNameError.style.visibility = "visible";
-            } else {
-                this.style.border = "";
-                lastNameError.style.visibility = "hidden";
-            }
-        });
-        document.getElementById('birthday').addEventListener('input', function() {
-            validateInput(this, /^(19[4-9]\d|20[0-9]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])+$/, 'birthdayErrorMessage');
-        });
-
-        document.getElementById('add-student-form').addEventListener('submit', function(event) {
-            let valid = true;
-
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-            if (!validateInput(document.getElementById('first-name'), /^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/, 'firstNameErrorMessage')) valid = false;
-            if (!validateInput(document.getElementById('last-name'), /^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/, 'lastNameErrorMessage')) valid = false;
-            if (!validateInput(document.getElementById('birthday'), /^(19[4-9]\d|20[0-9]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])+$/, 'birthdayErrorMessage')) valid = false;
-            
-            if(document.getElementById('first-name').value.trim().toLowerCase() === "select")
-            {
+        
+            // First name validation
+            document.getElementById('first-name').addEventListener('input', function() {
                 let firstNameError = document.getElementById('firstNameErrorMessage');
-                firstNameError.textContent = "You cannot input this, you may be a thief 🤔";
-                firstNameError.style.visibility = "visible";
-                return;
-            }
-            else if(document.getElementById('last-name').value.trim().toLowerCase() === "select")
-            {
+        
+                if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.value)) {
+                    this.style.border = "2px solid red";
+                    firstNameError.textContent = "First name cannot be an email.";
+                    firstNameError.style.visibility = "visible";
+                } else if (!/^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/.test(this.value.trim())) {
+                    this.style.border = "2px solid red";
+                    firstNameError.textContent = "Invalid first name.";
+                    firstNameError.style.visibility = "visible";
+                } else {
+                    this.style.border = "";
+                    firstNameError.style.visibility = "hidden";
+                }
+            });
+        
+            // Last name validation
+            document.getElementById('last-name').addEventListener('input', function() {
                 let lastNameError = document.getElementById('lastNameErrorMessage');
-                lastNameError.textContent = "You cannot input this, you may be a thief 🤔";
-                lastNameError.style.visibility = "visible";
-                return;
-            }
-
-            
-
-            if (document.getElementById('group').value === "") {
-                document.getElementById('groupErrorMessage').style.visibility = "visible";
-                valid = false;
-            } else {
-                document.getElementById('groupErrorMessage').style.visibility = "hidden";
-            }
-            
-            if (document.getElementById('gender').value === "") {
-                document.getElementById('genderErrorMessage').style.visibility = "visible";
-                valid = false;
-            } else {
-                document.getElementById('genderErrorMessage').style.visibility = "hidden";
-            }
-
-            if (!document.getElementById('birthday').value) {
-                document.getElementById('birthdayErrorMessage').style.visibility = "visible";
-                valid = false;
-            } else {
-                document.getElementById('birthdayErrorMessage').style.visibility = "hidden";
-            }
-
-            if (!valid) {
+        
+                if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.value)) {
+                    this.style.border = "2px solid red";
+                    lastNameError.textContent = "Last name cannot be an email.";
+                    lastNameError.style.visibility = "visible";
+                } else if (!/^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/.test(this.value.trim())) {
+                    this.style.border = "2px solid red";
+                    lastNameError.textContent = "Invalid last name.";
+                    lastNameError.style.visibility = "visible";
+                } else {
+                    this.style.border = "";
+                    lastNameError.style.visibility = "hidden";
+                }
+            });
+        
+            // Birthday validation
+            document.getElementById('birthday').addEventListener('input', function() {
+                validateInput(this, /^(19[4-9]\d|20[0-9]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, 'birthdayErrorMessage');
+            });
+        
+            // Form submit
+            document.getElementById('add-student-form').addEventListener('submit', function(event) {
                 event.preventDefault();
-                alert("Unproper data");
-                return;
-            }
+        
+                let formData = {
+                    id: document.getElementById('student-id').value, // Add student-id to formData
+                    StudentGroup: document.getElementById('StudentGroup').value,
+                    firstName: document.getElementById('first-name').value.trim(),
+                    lastName: document.getElementById('last-name').value.trim(),
+                    gender: document.getElementById('gender').value,
+                    birthday: document.getElementById('birthday').value
+                };
 
-            var formData = {
-                group: document.getElementById('group').value,
-                firstName: document.getElementById('first-name').value,
-                lastName: document.getElementById('last-name').value,
-                gender: document.getElementById('gender').value,
-                birthday: document.getElementById('birthday').value
-            };
-
-            if (window.parent && typeof window.parent.setValue === 'function') {
-                try {
-                    window.parent.setValue(formData);
-                } catch (error) {
-                    console.error('Error passing data:', error);
-                    alert('Error passing data: ${error.message}');
+                let valid = true;
+        
+                if (!validateInput(document.getElementById('first-name'), /^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/, 'firstNameErrorMessage')) valid = false;
+                if (!validateInput(document.getElementById('last-name'), /^[A-Za-zА-Яа-яЇїІіЄєҐґ'’-]+$/, 'lastNameErrorMessage')) valid = false;
+                if (!validateInput(document.getElementById('birthday'), /^(19[4-9]\d|20[0-9]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, 'birthdayErrorMessage')) valid = false;
+        
+                if (document.getElementById('first-name').value.trim().toLowerCase() === "select") {
+                    let firstNameError = document.getElementById('firstNameErrorMessage');
+                    firstNameError.textContent = "You cannot input this, you may be a thief 🤔";
+                    firstNameError.style.visibility = "visible";
+                    valid = false;
                 }
-            }
-        });
-        document.getElementById('add-student-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            document.getElementById('title').textContent = "Edit Student"
-    
-            console.log('Form submitted with data:', formData);
-    
-            if (window.parent && typeof window.parent.setValue === 'function') {
-                try {
-                    window.parent.setValue(formData);
-                } catch (error) {
-                    console.error('Error passing data:', error);
-                    alert(`Error passing data: ${error.message}`);
+        
+                if (document.getElementById('last-name').value.trim().toLowerCase() === "select") {
+                    let lastNameError = document.getElementById('lastNameErrorMessage');
+                    lastNameError.textContent = "You cannot input this, you may be a thief 🤔";
+                    lastNameError.style.visibility = "visible";
+                    valid = false;
                 }
-            }
+        
+                if (document.getElementById('StudentGroup').value === "") {
+                    document.getElementById('groupErrorMessage').style.visibility = "visible";
+                    valid = false;
+                } else {
+                    document.getElementById('groupErrorMessage').style.visibility = "hidden";
+                }
+        
+                if (document.getElementById('gender').value === "") {
+                    document.getElementById('genderErrorMessage').style.visibility = "visible";
+                    valid = false;
+                } else {
+                    document.getElementById('genderErrorMessage').style.visibility = "hidden";
+                }
+        
+                if (!document.getElementById('birthday').value) {
+                    document.getElementById('birthdayErrorMessage').style.visibility = "visible";
+                    valid = false;
+                } else {
+                    document.getElementById('birthdayErrorMessage').style.visibility = "hidden";
+                }
+        
+                if (!valid) {
+                    alert("Unproper data");
+                    console.log('Form validation failed:', formData);
+                    return;
+                }
+        
+                // Change title
+                document.getElementById('title').textContent = "Edit Student";
+        
+                console.log('Form submitted with data:', formData);
+        
+                if (window.parent && typeof window.parent.setValue === 'function') {
+                    try {
+                        window.parent.setValue(formData);
+                    } catch (error) {
+                        console.error('Error passing data:', error);
+                        alert(`Error passing data: ${error.message}`);
+                    }
+                }
+            });
         });
     </script>
-
-    <script src="script.js" defer></script>
 </body>
 </html>

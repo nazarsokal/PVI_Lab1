@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="theme-color" content="#808080">
+    <meta name="theme-color" content="#808080"> -->
     <title>Students</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="/manifest.json">
@@ -34,7 +34,9 @@
                 <iframe src="userProfile.html"></iframe>
             </div> 
 
-            <h2 class="NavBarName">James Bond</h2>
+            <div id="userSection">
+                <!-- Dynamically updated by JavaScript -->
+            </div>
         </div>
     </header>
 
@@ -86,7 +88,7 @@
 
     <div id="deleteModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span class="close" onclick="closeModal()">×</span>
             <p id="deleteText"></p>
             <div class="modal-buttons">
                 <button id="confirmDelete" onclick="confirmDelete()">OK</button>
@@ -95,19 +97,27 @@
         </div>
     </div>
 
+    <div id="loginModal" class="loginModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">×</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username (firstname_lastname)</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password (birthday YYYY-MM-DD)</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Login</button>
+                    <button type="button" onclick="closeLoginModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js" defer></script>
-    <!-- <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered with scope:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.error('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script> -->
 </body>
 </html>
