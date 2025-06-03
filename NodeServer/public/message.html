@@ -31,11 +31,29 @@
       padding: 8px;
       cursor: pointer;
       border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .users-list li:hover,
     .users-list li.active {
       background: #ddd;
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-left: 5px;
+    }
+
+    .status-online {
+      background-color: green;
+    }
+
+    .status-offline {
+      background-color: gray;
     }
 
     .chat-box {
@@ -100,7 +118,6 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    // Student class definition
     class Student {
       constructor(id, StudentGroup, firstName, lastName, gender, birthday) {
         this.id = id || Date.now().toString();
@@ -114,24 +131,20 @@
 
     const socket = io("http://localhost:3000");
 
-    // DOM elements
     const userList = document.getElementById("userList");
     const messagesDiv = document.getElementById("messages");
     const messageInput = document.getElementById("messageInput");
 
-    // Store students and chats
     let students = [];
     let chats = {};
     let currentUserId = null;
     let loggedInUserId = null;
 
-    // Initialize on page load
     document.addEventListener("DOMContentLoaded", async function () {
       getLoggedUser();
       await receiveStudents();
       if (loggedInUserId) {
         socket.emit('register', loggedInUserId);
-        console.log(`Registered user ${loggedInUserId}`);
       }
     });
 
@@ -139,7 +152,7 @@
       const userSection = document.getElementById("userSection");
       const isLoggedIn = sessionStorage.getItem("loggedInUserId");
       if (isLoggedIn) {
-        loggedInUserId = isLoggedIn; // Keep as string
+        loggedInUserId = isLoggedIn;
         const loggedInUserName = sessionStorage.getItem("loggedInUserName") || "User";
         userSection.innerHTML = `<h2>${loggedInUserName}</h2>`;
       } else {
@@ -147,7 +160,6 @@
       }
     }
 
-    // Login modal function
     function openLoginModal() {
       const username = prompt("Enter username (e.g., james_bond):");
       const password = prompt("Enter password (birthday, e.g., 1990-01-01):");
@@ -172,20 +184,16 @@
       }
     }
 
-    // Handle incoming messages
     socket.on('chat message', (data) => {
       const { text, fromUserId, toUserId, timestamp } = data;
       console.log('Received message:', data);
 
-      // Determine chat ID
       const chatId = (fromUserId === loggedInUserId) ? toUserId : fromUserId;
 
-      // Initialize chat if it doesn't exist
       if (!chats[chatId]) {
         chats[chatId] = [];
       }
 
-      // Check for duplicates by timestamp and text
       const exists = chats[chatId].some(msg => 
         msg.text === text && msg.timestamp === timestamp
       );
@@ -196,9 +204,18 @@
         chats[chatId].push({ sender: senderName, text, timestamp });
       }
 
-      // Re-render if viewing this chat
       if (currentUserId === chatId) {
         renderMessages();
+      }
+    });
+
+    socket.on('user status update', (data) => {
+      const { userId, status } = data;
+      console.log(`User ${userId} status updated to ${status}`);
+      const li = userList.querySelector(`li[data-user-id="${userId}"]`);
+      if (li) {
+        const statusIndicator = li.querySelector('.status-indicator');
+        statusIndicator.className = 'status-indicator ' + (status === 'online' ? 'status-online' : 'status-offline');
       }
     });
 
@@ -209,7 +226,6 @@
       }
 
       const chatArray = chats[currentUserId] || [];
-      // Sort messages by timestamp
       chatArray.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       chatArray.forEach((msg) => {
         const msgDiv = document.createElement("div");
@@ -220,11 +236,9 @@
         messagesDiv.appendChild(msgDiv);
       });
 
-      // Scroll to bottom
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Handle user list clicks
     userList.addEventListener("click", async function (e) {
       if (e.target.tagName === "LI") {
         Array.from(userList.children).forEach((li) => li.classList.remove("active"));
@@ -242,65 +256,63 @@
         return;
       }
 
-      // Send message to server
       socket.emit('chat message', {
         text,
         toUserId: currentUserId,
         fromUserId: loggedInUserId,
         timestamp: new Date().toISOString()
       });
-      console.log(`Sent message to ${currentUserId} from ${loggedInUserId}: ${text}`);
       messageInput.value = "";
     }
 
-    // Fetch students
     async function receiveStudents() {
-      try {
-        const response = await fetch("http://localhost/server/api/students/index");
-        console.log("Response status:", response.status);
-        if (!response.ok) {
-          alert(`HTTP error! Status: ${response.status}`);
-          return;
-        }
+    try {
+    const response = await fetch("http://localhost/server/api/students/index");
+    if (!response.ok) {
+      alert(`HTTP error! Status: ${response.status}`);
+      return;
+    }
 
-        const jsonArray = await response.json();
-        console.log("Server returned:", jsonArray);
+    const jsonArray = await response.json();
+    students = jsonArray.map(
+      (s) => new Student(s.id, s.StudentGroup, s.firstName, s.lastName, s.gender, s.birthday)
+    );
 
-        // Map to Student instances
-        students = jsonArray.map(
-          (s) => new Student(s.id, s.StudentGroup, s.firstName, s.lastName, s.gender, s.birthday)
-        );
+    // Завантажуємо статуси після отримання студентів
+    const statusResponse = await fetch("http://localhost:3000/api/user-status");
+    const userStatuses = await statusResponse.json();
+    console.log('Initial user statuses:', userStatuses);
 
-        // Initialize chats
-        students.forEach((stu) => {
-          chats[stu.id] = [];
-        });
+    students.forEach((stu) => {
+      chats[stu.id] = [];
+    });
 
-        // Set default current user and fetch messages
-        if (students.length > 0) {
-          currentUserId = students[0].id;
-          await fetchMessages();
-        }
+    if (students.length > 0) {
+      currentUserId = students[0].id;
+      await fetchMessages();
+    }
 
-        // Build user list
         userList.innerHTML = "";
-        students.forEach((user, index) => {
-          const li = document.createElement("li");
-          li.textContent = `${user.firstName} ${user.lastName}`;
-          li.dataset.userId = user.id;
-          if (index === 0) {
-            li.classList.add("active");
-          }
-          userList.appendChild(li);
-        });
-
+    students.forEach((user, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${user.firstName} ${user.lastName}`;
+      li.dataset.userId = user.id;
+      const statusIndicator = document.createElement("span");
+      // Встановлюємо початковий статус із отриманих даних
+      const status = userStatuses[user.id] || 'offline';
+      statusIndicator.className = 'status-indicator ' + (status === 'online' ? 'status-online' : 'status-offline');
+      li.appendChild(statusIndicator);
+      if (index === 0) {
+        li.classList.add("active");
+      }
+      userList.appendChild(li);
+    });
         renderMessages();
       } catch (error) {
         console.error("Error fetching students:", error);
       }
     }
 
-    // Fetch messages from MongoDB
     async function fetchMessages() {
       if (!loggedInUserId || !currentUserId) {
         console.log('Cannot fetch messages: missing loggedInUserId or currentUserId');
@@ -324,7 +336,6 @@
           text: msg.text,
           timestamp: msg.timestamp
         }));
-        console.log(`Fetched ${messages.length} messages for chat with ${currentUserId}`);
       } catch (error) {
         console.error("Error fetching messages:", error);
       }

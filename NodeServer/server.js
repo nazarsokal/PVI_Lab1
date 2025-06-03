@@ -5,6 +5,10 @@ const http = require('http');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 
+// Припустимо, що список студентів завантажується звідкись (заміни на свій спосіб завантаження)
+const axios = require('axios');
+const students = []; // Тут буде масив студентів, наприклад, з API
+
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
@@ -23,6 +27,34 @@ app.use(cors({
 }));
 
 const userSocketMap = new Map(); // Maps userId (string) to socket.id
+const userStatusMap = new Map(); // Maps userId (string) to status ('online' or 'offline')
+
+// Завантажуємо студентів (заміни URL на свій API-ендпоінт)
+async function loadStudents() {
+  try {
+    const response = await axios.get('http://localhost/server/api/students/index');
+    return response.data.map(student => ({
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      gender: student.gender,
+      birthday: student.birthday
+    }));
+  } catch (error) {
+    console.error('Error loading students:', error);
+    return [];
+  }
+}
+
+// Ініціалізація студентів і статусів при старті
+loadStudents().then(data => {
+  students.length = 0; // Очищаємо масив
+  students.push(...data); // Заповнюємо масив студентами
+  console.log('Students loaded:', students.length);
+  students.forEach(student => {
+    userStatusMap.set(student.id, 'offline'); // Ініціалізуємо всіх як offline
+  });
+});
 
 // MongoDB connection
 mongoose.connect('mongodb://localhost:27017/messenger', {
@@ -41,7 +73,6 @@ const messageSchema = new mongoose.Schema({
   text: { type: String, required: true },
   timestamp: { type: Date, default: Date.now }
 });
-
 const Message = mongoose.model('Message', messageSchema);
 
 // Serve static files
@@ -72,27 +103,36 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+// API to fetch user statuses
+app.get('/api/user-status', (req, res) => {
+  const userStatuses = {};
+  students.forEach(student => {
+    const status = userStatusMap.get(student.id) || 'offline';
+    userStatuses[student.id] = status;
+  });
+  res.json(userStatuses);
+});
+
 // Socket.io logic
 io.on('connection', (socket) => {
   console.log('New user connected:', socket.id);
 
-  // Register user ID
   socket.on('register', (userId) => {
     userSocketMap.set(userId, socket.id);
-    console.log(`User ${userId} registered with socket ${socket.id}`);
+    userStatusMap.set(userId, 'online');
+    console.log(`User ${userId} registered with socket ${socket.id} and set to online`);
+    io.emit('user status update', { userId, status: 'online' }); // Broadcast status change
   });
 
   socket.on('chat message', async (data) => {
     console.log('Message received:', data);
     const { text, toUserId, fromUserId } = data;
 
-    // Validate data
     if (!text || !toUserId || !fromUserId) {
       console.log('Invalid message data:', data);
       return;
     }
 
-    // Save message to MongoDB
     try {
       const message = new Message({ fromUserId, toUserId, text });
       await message.save();
@@ -102,7 +142,6 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Send message to recipient
     const recipientSocketId = userSocketMap.get(toUserId);
     if (recipientSocketId) {
       io.to(recipientSocketId).emit('chat message', {
@@ -111,12 +150,8 @@ io.on('connection', (socket) => {
         toUserId,
         timestamp: new Date()
       });
-      console.log(`Message sent to ${toUserId} (socket ${recipientSocketId})`);
-    } else {
-      console.log(`Recipient ${toUserId} is offline`);
     }
 
-    // Send message back to sender
     const senderSocketId = userSocketMap.get(fromUserId);
     if (senderSocketId) {
       io.to(senderSocketId).emit('chat message', {
@@ -125,7 +160,6 @@ io.on('connection', (socket) => {
         toUserId,
         timestamp: new Date()
       });
-      console.log(`Message sent back to sender ${fromUserId} (socket ${senderSocketId})`);
     }
   });
 
@@ -134,7 +168,9 @@ io.on('connection', (socket) => {
     for (let [userId, socketId] of userSocketMap.entries()) {
       if (socketId === socket.id) {
         userSocketMap.delete(userId);
-        console.log(`User ${userId} removed from userSocketMap`);
+        userStatusMap.set(userId, 'offline');
+        io.emit('user status update', { userId, status: 'offline' }); // Broadcast status change
+        console.log(`User ${userId} set to offline and removed from userSocketMap`);
       }
     }
   });
