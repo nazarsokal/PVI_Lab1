@@ -3,43 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="theme-color" content="#808080"> -->
     <title>Students</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="/manifest.json">
 </head>
 <body>
-
     <header class="navbarMain">
         <a href="/" class="NavBarTitle">
             <h2>CMS</h2>
         </a>
-
         <div class="navbar-right">
             <img id="notificationBell" 
-                src="images/notification.png" 
-                alt="Notification Bell" 
-                class="notificationLogo"
-                onclick="changeImage()"/>
-
+                 src="images/notification.png" 
+                 alt="Notification Bell" 
+                 class="notificationLogo"
+                 onclick="changeImage()"/>
             <div id="popup" class="popup">
                 <iframe id="messageFrame" src="messagesPopup.html"></iframe>
             </div>
-
             <img src="images/user.png" id="userLogo" alt="UserLogo" class="userLogo"/>
-
             <div id="popupUser" class="popup">
                 <iframe src="userProfile.html"></iframe>
             </div> 
-
-            <div id="userSection">
-                <!-- Dynamically updated by JavaScript -->
-            </div>
+            <div id="userSection"></div>
         </div>
     </header>
-
     <div class="mainBody">
         <nav class="links">
             <ul class="linksList">
@@ -49,7 +37,6 @@
                 <li class="linksListElems" id="MessagesLink">Messages</li>
             </ul>
         </nav>
-
         <div class="header-container">
             <h1>Students</h1>
             <div class="addStudentsButton">
@@ -68,10 +55,8 @@
                             <th>Options</th>
                         </tr>
                     </thead>
-                    <tbody class="tbody">
-                    </tbody>
+                    <tbody class="tbody"></tbody>
                 </table>
-                <!-- <div style="margin-top: 5px; display: flex; justify-content: center;"> -->
                 <div class="scroll-buttons" style="margin-top: 5px; display: flex; justify-content: center; gap: 20px;">
                     <button onclick="prevPage()">-</button>
                     <button onclick="nextPage()">+</button>
@@ -79,14 +64,12 @@
             </div>
         </div>
     </div>
-
     <div id="addStudentModal" class="addModal">
         <div class="modal-content">
             <button class="close-btn" onclick="closePopup()">×</button>
             <iframe id="studentIframe" src="addStudents.html"></iframe>
         </div>
     </div>
-
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">×</span>
@@ -97,7 +80,6 @@
             </div>
         </div>
     </div>
-
     <div id="loginModal" class="loginModal">
         <div class="modal-content">
             <span class="close" onclick="closeLoginModal()">×</span>
@@ -118,7 +100,7 @@
             </form>
         </div>
     </div>
-
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="script.js" defer></script>
 </body>
 </html>

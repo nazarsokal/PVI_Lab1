@@ -100,22 +100,21 @@ th {
   font-weight: bold;
 }
 
-.status {
+.status-indicator {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   display: inline-block;
 }
 
-.status.active {
+.status-online {
   background-color: green;
 }
 
-.status.inactive {
+.status-offline {
   background-color: lightgray;
 }
 
-/* Checkbox Styling */
 .checkbox {
   border: 2px solid black;
   display: inline-block;
@@ -144,7 +143,7 @@ h2 {
   font-size: 1.8rem;
 }
 
-#popupUser{
+#popupUser {
   width: 200px;
   height: 100px;
 }
@@ -170,7 +169,6 @@ h2 {
   border-radius: 8px;
 }
 
-/* Styles for the modal */
 .addModal {
   display: none;
   position: fixed;
@@ -212,7 +210,7 @@ h2 {
   color: #d9534f;
 }
 
-.bottomButtons{
+.bottomButtons {
   font-size: 16px;
   margin-left: 10px;
 }
@@ -224,7 +222,6 @@ iframe {
   border: none;
 }
 
-/* Fade-in animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -236,8 +233,6 @@ iframe {
   }
 }
 
-
-/* Стилізація модального вікна */
 .modal {
   display: none;
   position: fixed;
@@ -253,7 +248,6 @@ iframe {
   text-align: center;
 }
 
-/* Фон для затемнення */
 .modal::before {
   content: "";
   position: fixed;
@@ -265,7 +259,6 @@ iframe {
   z-index: -1;
 }
 
-/* Закриваюча кнопка */
 .close {
   position: absolute;
   top: 10px;
@@ -274,7 +267,6 @@ iframe {
   cursor: pointer;
 }
 
-/* Кнопки */
 .modal-buttons {
   margin-top: 15px;
 }
@@ -296,15 +288,13 @@ iframe {
   opacity: 0.8;
 }
 
-
 @media (max-width: 1024px) {
   .navbarMain {
-      flex-direction: row;
-      text-align: center;
-      padding: 10px;
-      height: auto;
+    flex-direction: row;
+    text-align: center;
+    padding: 10px;
+    height: auto;
   }
-
   .links ul {
     list-style: none;
     padding-left: 10px;
@@ -312,29 +302,25 @@ iframe {
     display: flex;
     gap: 10px;
   }
-
   .navbar-right {
-      margin-top: 10px;
-      justify-content: center;
+    margin-top: 10px;
+    justify-content: center;
   }
-
   .mainBody {
-      flex-direction: column;
-      align-items: center;
+    flex-direction: column;
+    align-items: center;
   }
-
   .header-container {
-      margin-left: 5%;
-      width: 80%;
+    margin-left: 5%;
+    width: 80%;
   }
 }
 
 @media (max-width: 768px) {
   .navbarMain {
-      flex-direction: row;
-      align-items: center;
+    flex-direction: row;
+    align-items: center;
   }
-
   .links ul {
     list-style: none;
     padding-left: 10px;
@@ -342,68 +328,55 @@ iframe {
     display: flex;
     gap: 10px;
   }
-
   .navbar-right {
-      justify-content: center;
+    justify-content: center;
   }
-
   .header-container {
-      margin-left: 0;
-      width: 100%;
-      flex-direction: column;
-      text-align: center;
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    text-align: center;
   }
-
   .table-container {
-      width: 100%;
-      overflow-x: auto;
+    width: 100%;
+    overflow-x: auto;
   }
-
   .addStudentsButton {
-      margin-left: auto;
-      margin-right: auto;
-      display: block;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
   }
-
-  .NavBarName{
+  .NavBarName {
     display: none;
   }
-
 }
 
 @media (max-width: 480px) {
   .navbarMain {
-      padding: 5px;
+    padding: 5px;
   }
-
   .NavBarTitle h2 {
-      font-size: 1.2rem;
+    font-size: 1.2rem;
   }
-
   .notificationLogo, .userLogo {
-      width: 30px;
-      height: 30px;
+    width: 30px;
+    height: 30px;
   }
-
   .header-container {
-      margin-left: 0;
-      width: 100%;
-      flex-direction: column;
-      text-align: center;
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    text-align: center;
   }
-
   .table-container {
-      font-size: 0.9rem;
+    font-size: 0.9rem;
   }
-
   .addStudentsButton {
-      font-size: 0.9rem;
+    font-size: 0.9rem;
   }
-
-  .NavBarName{
+  .NavBarName {
     display: none;
   }
-
 }
 
 .loginModal {
@@ -481,19 +454,6 @@ iframe {
   color: white;
 }
 
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.4);
-}
-
-/* Modal background (for all modals) */
 .modal-background {
   display: none;
   position: fixed;
@@ -507,7 +467,6 @@ iframe {
   animation: fadeIn 0.3s ease;
 }
 
-/* Delete Confirmation Modal (using ID selector) */
 #deleteModal {
   display: none;
   position: fixed;
@@ -525,7 +484,6 @@ iframe {
   animation: slideDown 0.3s ease;
 }
 
-/* Login Modal */
 .modal-login {
   display: none;
   position: fixed;
@@ -543,7 +501,6 @@ iframe {
   animation: slideDown 0.3s ease;
 }
 
-/* Common Close Button */
 .close {
   color: #aaa;
   float: right;
@@ -558,7 +515,6 @@ iframe {
   text-decoration: none;
 }
 
-/* Modal Buttons */
 .modal-buttons {
   margin-top: 20px;
   display: flex;
@@ -574,25 +530,21 @@ iframe {
   font-size: 16px;
 }
 
-/* Confirm Delete Button */
 #confirmDelete {
   background-color: #f44336;
   color: white;
 }
 
-/* Submit (Login) Button */
 .modal-buttons button[type="submit"] {
   background-color: #4CAF50;
   color: white;
 }
 
-/* Cancel Button */
 .modal-buttons button[type="button"] {
   background-color: #9e9e9e;
   color: white;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {opacity: 0;}
   to {opacity: 1;}

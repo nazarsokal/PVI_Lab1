@@ -1,7 +1,6 @@
 <?php
 
 header("Access-Control-Allow-Origin: http://localhost:3000");
-// header("Access-Control-Allow-Origin: http://192.168.1.7:3000");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, X-Requested-With");
 

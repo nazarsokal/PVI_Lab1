@@ -5,6 +5,10 @@ const http = require('http');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 
+// Припустимо, що список студентів завантажується звідкись (заміни на свій спосіб завантаження)
+const axios = require('axios');
+const students = []; // Тут буде масив студентів, наприклад, з API
+
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
@@ -23,7 +27,34 @@ app.use(cors({
 }));
 
 const userSocketMap = new Map(); // Maps userId (string) to socket.id
+const userStatusMap = new Map(); // Maps userId (string) to status ('online' or 'offline')
 
+// Завантажуємо студентів (заміни URL на свій API-ендпоінт)
+async function loadStudents() {
+  try {
+    const response = await axios.get('http://localhost/server/api/students/index');
+    return response.data.map(student => ({
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      gender: student.gender,
+      birthday: student.birthday
+    }));
+  } catch (error) {
+    console.error('Error loading students:', error);
+    return [];
+  }
+}
+
+// Ініціалізація студентів і статусів при старті
+loadStudents().then(data => {
+  students.length = 0; // Очищаємо масив
+  students.push(...data); // Заповнюємо масив студентами
+  console.log('Students loaded:', students.length);
+  students.forEach(student => {
+    userStatusMap.set(student.id, 'offline'); // Ініціалізуємо всіх як offline
+  });
+});
 // MongoDB connection with retry
 const connectMongoDB = async () => {
   try {
@@ -48,7 +79,6 @@ const messageSchema = new mongoose.Schema({
   text: { type: String, required: true },
   timestamp: { type: Date, default: Date.now }
 });
-
 const Message = mongoose.model('Message', messageSchema);
 
 // Group schema
@@ -140,13 +170,35 @@ app.get('/api/groups', async (req, res) => {
   }
 });
 
+// API to fetch user statuses
+app.get('/api/user-status', (req, res) => {
+  const userStatuses = {};
+  students.forEach(student => {
+    const status = userStatusMap.get(student.id) || 'offline';
+    userStatuses[student.id] = status;
+  });
+  res.json(userStatuses);
+});
+
+// API to fetch user statuses
+app.get('/api/user-status', (req, res) => {
+  const userStatuses = {};
+  students.forEach(student => {
+    const status = userStatusMap.get(student.id) || 'offline';
+    userStatuses[student.id] = status;
+  });
+  res.json(userStatuses);
+});
+
 // Socket.io logic
 io.on('connection', (socket) => {
   console.log('New user connected:', socket.id);
 
   socket.on('register', (userId) => {
     userSocketMap.set(userId, socket.id);
-    console.log(`User ${userId} registered with socket ${socket.id}`);
+    userStatusMap.set(userId, 'online');
+    console.log(`User ${userId} registered with socket ${socket.id} and set to online`);
+    io.emit('user status update', { userId, status: 'online' }); // Broadcast status change
   });
 
   socket.on('chat message', async (data) => {
@@ -229,7 +281,9 @@ io.on('connection', (socket) => {
     for (let [userId, socketId] of userSocketMap.entries()) {
       if (socketId === socket.id) {
         userSocketMap.delete(userId);
-        console.log(`User ${userId} removed from userSocketMap`);
+        userStatusMap.set(userId, 'offline');
+        io.emit('user status update', { userId, status: 'offline' }); // Broadcast status change
+        console.log(`User ${userId} set to offline and removed from userSocketMap`);
       }
     }
   });
