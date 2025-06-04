@@ -8,6 +8,7 @@ class Student {
         this.birthday = birthday || '';
     }
 }
+let students = [];
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM fully loaded. Running GetStudents...");
@@ -18,9 +19,29 @@ document.addEventListener("DOMContentLoaded", function () {
     GetStudents();
 });
 
+document.getElementById('MessagesLink').addEventListener("click", async function () {
+    if(!checkLogin()) return;
+    let studentFromSession = sessionStorage.getItem("loggedInUserName");
+
+    const student = students.find(s => s.firstName.toLowerCase() === studentFromSession.split(' ')[0].toLowerCase() 
+        && s.lastName.toLowerCase() === studentFromSession.split(' ')[1].toLocaleLowerCase());
+    let studentLoggedJson = JSON.stringify(student);
+    let studentList = JSON.stringify(students);
+
+    console.log(studentLoggedJson);
+
+    fetch('/Messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(student)
+      }).then(() => {
+        window.location.href = '/message.html';
+      });
+});
+
 function updateUserSection() {
     const userSection = document.getElementById("userSection");
-    const isLoggedIn = sessionStorage.getItem("loggedInUser");
+    const isLoggedIn = sessionStorage.getItem("loggedInUserName");
     if (isLoggedIn) {
         userSection.innerHTML = `<h2 class="NavBarName">${isLoggedIn}</h2>`;
     } else {
@@ -40,18 +61,19 @@ function setupLoginForm() {
 
 function loginUser(username, password) {
     const student = students.find(s => 
-        `${s.firstName.toLowerCase()}_${s.lastName.toLowerCase()}` === username.toLowerCase() &&
-        s.birthday === password
+      `${s.firstName.toLowerCase()}_${s.lastName.toLowerCase()}` === username.toLowerCase() &&
+      s.birthday === password
     );
     if (student) {
-        sessionStorage.setItem("loggedInUser", `${student.firstName} ${student.lastName}`);
-        closeLoginModal();
-        updateUserSection();
-        alert("Login successful!");
+      sessionStorage.setItem("loggedInUserId", student.id); // Store student ID
+      sessionStorage.setItem("loggedInUserName", `${student.firstName} ${student.lastName}`); // Store full name
+      closeLoginModal();
+      updateUserSection();
+      alert("Login successful!");
     } else {
-        alert("Invalid username or password.");
+      alert("Invalid username or password.");
     }
-}
+  }
 
 function openLoginModal() {
     document.getElementById("loginModal").style.display = "block";
@@ -63,7 +85,7 @@ function closeLoginModal() {
 }
 
 function checkLogin(action) {
-    if (!sessionStorage.getItem("loggedInUser")) {
+    if (!sessionStorage.getItem("loggedInUserName")) {
         openLoginModal();
         return false;
     }
@@ -146,8 +168,7 @@ function closePopup() {
 }
 
 var i = 0;
-
-function setValue(data) {
+async function setValue(data) {
     if (!checkLogin()) return;
     console.log('Received form data in parent window:', data);
 
@@ -161,34 +182,45 @@ function setValue(data) {
 
     console.log("Student Object", JSON.stringify(studentObj));
 
-    const url = editingIndex === "null" ? 'server/api/students/create' : 'server/api/students/update';
+    const url = editingIndex === "null" ? 'http://localhost/server/api/students/create' : 'http://localhost/server/api/students/update';
     const method = 'POST';
 
-    fetch(url, {
+    await fetch(url, {
         method: method,
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(studentObj)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.status === 400) {
+            return response.json().then(err => { 
+                alert(err.error || "This user already exists");
+                throw new Error(err.error); 
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         console.log(data);
-        //GetStudents(); // Refresh the table
     })
-    .catch(error => console.error('Error:', error));  
+    .catch(error => {
+        console.error('Error:', error);
+    });
 
     form.setAttribute('data-editing-index', "null");
     closePopup();
+
+    window.location.reload();
 }
 
 
-let students = [];
 
-function GetStudents() {
-    fetch('server/api/students/index')
+
+async function GetStudents() {
+    await fetch('http://localhost/server/api/students/index')
     .then(response => {
         console.log('Response status:', response.status);
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            alert(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
     })
@@ -201,46 +233,65 @@ function GetStudents() {
         .catch(error => console.error('Error: ', error));
 }
 
+let currentStartIndex = 0; // Start from the first student
+const pageSize = 5;
+
 function InsertToTable(studentList) {
     const table = document.getElementById('tableStudents');
     const tbody = table.querySelector("tbody");
+    tbody.innerHTML = '';
 
+    const visibleStudents = studentList.slice(currentStartIndex, currentStartIndex + pageSize);
     console.log('Students count', studentList.length);
-    for (let index = 0; index < studentList.length; index++) {
-        console.log(studentList[index]);
-        if(studentList[index].firstName === "Nazar" || studentList[index].lastName === "Sokalchuk") {
+    for (let index = 0; index < visibleStudents.length; index++) {
+        const student = visibleStudents[index];
+        if(student.firstName === "Nazar" || student.lastName === "Sokalchuk") {
             const newRow = document.createElement("tr");
-            newRow.setAttribute('data-id', studentList[index].id);
+            newRow.setAttribute('data-id', student.id);
             newRow.innerHTML = `
                 <td><input type="checkbox" class="checkbox"></td>
-                <td>${studentList[index].StudentGroup}</td>
-                <td style="color: blue;">"${studentList[index].firstName} ${studentList[index].lastName}"</td>
-                <td>${studentList[index].gender}</td>
-                <td>${studentList[index].birthday.split("-").reverse().join(".")}</td>
+                <td>${student.StudentGroup}</td>
+                <td style="color: blue;">"${student.firstName} ${student.lastName}"</td>
+                <td>${student.gender}</td>
+                <td>${student.birthday.split("-").reverse().join(".")}</td>
                 <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
                 <td>
-                    <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
+                    <button class="bottomButtons" onclick="openPopup(${index})">Edit</button>
                     <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
                 </td>
             `;
             tbody.appendChild(newRow);   
         } else {
             const newRow = document.createElement("tr");
-            newRow.setAttribute('data-id', studentList[index].id);
+            newRow.setAttribute('data-id', student.id);
             newRow.innerHTML = `
                 <td><input type="checkbox" class="checkbox"></td>
-                <td>${studentList[index].StudentGroup}</td>
-                <td>${studentList[index].firstName} ${studentList[index].lastName}</td>
-                <td>${studentList[index].gender}</td>
-                <td>${studentList[index].birthday.split("-").reverse().join(".")}</td>
+                <td>${student.StudentGroup}</td>
+                <td>${student.firstName} ${student.lastName}</td>
+                <td>${student.gender}</td>
+                <td>${student.birthday.split("-").reverse().join(".")}</td>
                 <td><input type="radio" class="status" id="status${i}"><label style="visibility: hidden;" for="status${i}">lb</label></td>
                 <td>
-                    <button class="bottomButtons" onclick="openPopup(${tbody.rows.length})">Edit</button>
+                    <button class="bottomButtons" onclick="openPopup(${index})">Edit</button>
                     <button onclick="showDeleteConfirmation(this)" class="bottomButtons">X</button>
                 </td>
             `;
             tbody.appendChild(newRow);
         }   
+    }
+}
+
+function nextPage() {
+    if (currentStartIndex + pageSize < students.length) {
+        currentStartIndex += pageSize;
+        InsertToTable(students);
+    }
+}
+
+function prevPage() {
+    if (currentStartIndex - pageSize >= 0) {
+        currentStartIndex -= pageSize;
+        InsertToTable(students);
     }
 }
 
@@ -280,11 +331,29 @@ notificationBell.src = savedImage;
 notificationBell.addEventListener("click", function () {
     notificationBell.src = newSrc;
     sessionStorage.setItem("bellIconSrc", newSrc); 
-    window.location.href = "/messages.html";
+    
+    if(!checkLogin()) return;
+    let studentFromSession = sessionStorage.getItem("loggedInUserName");
+
+    const student = students.find(s => s.firstName.toLowerCase() === studentFromSession.split(' ')[0].toLowerCase() 
+        && s.lastName.toLowerCase() === studentFromSession.split(' ')[1].toLocaleLowerCase());
+    let studentLoggedJson = JSON.stringify(student);
+    let studentList = JSON.stringify(students);
+
+    console.log(studentLoggedJson);
+
+    fetch('/Messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(student)
+      }).then(() => {
+        window.location.href = '/message.html';
+      });
 });
 
 let angle = 0;
 notificationBell.addEventListener("mouseenter", function() {
+    if (!checkLogin()) return;
     popup.style.display = "block";
     requestAnimationFrame(rotateElement);
 });
@@ -329,13 +398,20 @@ document.querySelector(".navbar-right").addEventListener("mouseleave", function(
 let userLogo = document.getElementById("userLogo");
 let userSettPopup = document.getElementById("popupUser");
 
-userLogo.addEventListener("mouseenter", function() {
-    userSettPopup.style.display = "block";
+userLogo.addEventListener("click", function() {
+    if(userSettPopup.style.display === "block")
+    {
+        userSettPopup.style.display = "none";
+    }
+    else
+    {
+        userSettPopup.style.display = "block";
+    }
 });
 
-document.querySelector(".navbar-right").addEventListener("mouseleave", function() {
-    userSettPopup.style.display = "none";
-});
+// document.querySelector(".navbar-right").addEventListener("mouseleave", function() {
+//     userSettPopup.style.display = "none";
+// });
 
 function editRow(button) {
     if (!checkLogin()) return;
@@ -362,18 +438,18 @@ function showDeleteConfirmation(button) {
 
     document.getElementById("deleteModal").style.display = "block";
 
-    document.getElementById("confirmDelete").onclick = function () {
+    document.getElementById("confirmDelete").onclick = async function () {
         const ids = selectedRows.map(row => row.getAttribute('data-id'));
         console.log(ids);
     
-        fetch('server/api/students/delete', {
+        await fetch('http://localhost/server/api/students/delete', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: ids })
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                alert('Network response was not ok');
             }
             return response.text().then(text => text ? JSON.parse(text) : {});
         })
@@ -384,6 +460,7 @@ function showDeleteConfirmation(button) {
         .catch(error => console.error('Error:', error));
         
         closeModal();
+        window.location.reload();
     };
     
 }
@@ -396,8 +473,8 @@ function closeModal() {
 }
 
 function loadComponent(id, file) {
-    fetch(file)
-        .then(response => response.text())
+    ch(file)
+    fet    .then(response => response.text())
         .then(data => document.getElementById(id).innerHTML = data);
 }
 
@@ -413,3 +490,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
     mainCheckBox.addEventListener("change", updateRowCheckboxes);
 });
+
+const userList = document.getElementById('userList');
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+
+    let currentUser = 'Alice';
+    let chats = {
+      'Alice': [],
+      'Bob': [],
+      'Charlie': []
+    };
+
+    function renderMessages() {
+      messagesDiv.innerHTML = '';
+      const chat = chats[currentUser];
+      chat.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        msgDiv.innerHTML = `<span>${msg.sender}:</span> ${msg.text}`;
+        messagesDiv.appendChild(msgDiv);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    userList.addEventListener('click', function (e) {
+      if (e.target.tagName === 'LI') {
+        [...userList.children].forEach(li => li.classList.remove('active'));
+        e.target.classList.add('active');
+        currentUser = e.target.dataset.user;
+        renderMessages();
+      }
+    });
+
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (text === '') return;
+
+      chats[currentUser].push({ sender: 'You', text });
+      renderMessages();
+      messageInput.value = '';
+    }
+
+    // Initial render
+    renderMessages();

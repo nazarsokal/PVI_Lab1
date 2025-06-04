@@ -46,6 +46,7 @@
                 <li class="linksListElems"><a href="dashboard.html" style="color: black; text-decoration: none;">Dashboards</a></li>
                 <li class="linksListElems"><a href="#" style="color: black; text-decoration: none;">Students</a></li>
                 <li class="linksListElems"><a href="tasks.html" style="color: black; text-decoration: none;">Tasks</a></li>
+                <li class="linksListElems" id="MessagesLink">Messages</li>
             </ul>
         </nav>
 
@@ -70,10 +71,10 @@
                     <tbody class="tbody">
                     </tbody>
                 </table>
-                <div style="margin-top: 5px; display: flex; justify-content: center;">
-                    <button class="bottomButtons">-</button>
-                    <button class="bottomButtons">1</button>
-                    <button class="bottomButtons">+</button>
+                <!-- <div style="margin-top: 5px; display: flex; justify-content: center;"> -->
+                <div class="scroll-buttons" style="margin-top: 5px; display: flex; justify-content: center; gap: 20px;">
+                    <button onclick="prevPage()">-</button>
+                    <button onclick="nextPage()">+</button>
                 </div>
             </div>
         </div>

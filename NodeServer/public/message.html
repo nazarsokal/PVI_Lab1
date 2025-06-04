@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Chat Room</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .users-list {
+      width: 200px;
+      background: #f4f4f4;
+      border-right: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    .users-list h3 {
+      margin-top: 0;
+    }
+
+    .users-list ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .users-list li {
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .users-list li:hover,
+    .users-list li.active {
+      background: #ddd;
+    }
+
+    .chat-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    .messages {
+      flex: 1;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      margin-bottom: 8px;
+    }
+
+    .message span {
+      font-weight: bold;
+    }
+
+    .input-area {
+      display: flex;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 8px;
+      font-size: 16px;
+    }
+
+    .input-area button {
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="userSection"></h2>
+  <div class="users-list">
+    <h3>Users</h3>
+    <ul id="userList">
+      <!-- Will be populated dynamically -->
+    </ul>
+  </div>
+
+  <div class="chat-box">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type your message..."
+      />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    // Student class definition
+    class Student {
+      constructor(id, StudentGroup, firstName, lastName, gender, birthday) {
+        this.id = id || Date.now().toString();
+        this.StudentGroup = StudentGroup;
+        this.firstName = firstName || "";
+        this.lastName = lastName || "";
+        this.gender = gender || "Select Gender";
+        this.birthday = birthday || "";
+      }
+    }
+
+    const socket = io("http://localhost:3000");
+
+    // DOM elements
+    const userList = document.getElementById("userList");
+    const messagesDiv = document.getElementById("messages");
+    const messageInput = document.getElementById("messageInput");
+
+    // Store students and chats
+    let students = [];
+    let chats = {};
+    let currentUserId = null;
+    let loggedInUserId = null;
+
+    // Initialize on page load
+    document.addEventListener("DOMContentLoaded", async function () {
+      getLoggedUser();
+      await receiveStudents();
+      if (loggedInUserId) {
+        socket.emit('register', loggedInUserId);
+        console.log(`Registered user ${loggedInUserId}`);
+      }
+    });
+
+    function getLoggedUser() {
+      const userSection = document.getElementById("userSection");
+      const isLoggedIn = sessionStorage.getItem("loggedInUserId");
+      if (isLoggedIn) {
+        loggedInUserId = isLoggedIn; // Keep as string
+        const loggedInUserName = sessionStorage.getItem("loggedInUserName") || "User";
+        userSection.innerHTML = `<h2>${loggedInUserName}</h2>`;
+      } else {
+        userSection.innerHTML = `<button onclick="openLoginModal()">Login</button>`;
+      }
+    }
+
+    // Login modal function
+    function openLoginModal() {
+      const username = prompt("Enter username (e.g., james_bond):");
+      const password = prompt("Enter password (birthday, e.g., 1990-01-01):");
+      if (username && password) {
+        loginUser(username, password);
+      }
+    }
+
+    function loginUser(username, password) {
+      const student = students.find(s => 
+        `${s.firstName.toLowerCase()}_${s.lastName.toLowerCase()}` === username.toLowerCase() &&
+        s.birthday === password
+      );
+      if (student) {
+        sessionStorage.setItem("loggedInUserId", student.id);
+        sessionStorage.setItem("loggedInUserName", `${student.firstName} ${student.lastName}`);
+        getLoggedUser();
+        socket.emit('register', student.id);
+        alert("Login successful!");
+      } else {
+        alert("Invalid username or password.");
+      }
+    }
+
+    // Handle incoming messages
+    socket.on('chat message', (data) => {
+      const { text, fromUserId, toUserId, timestamp } = data;
+      console.log('Received message:', data);
+
+      // Determine chat ID
+      const chatId = (fromUserId === loggedInUserId) ? toUserId : fromUserId;
+
+      // Initialize chat if it doesn't exist
+      if (!chats[chatId]) {
+        chats[chatId] = [];
+      }
+
+      // Check for duplicates by timestamp and text
+      const exists = chats[chatId].some(msg => 
+        msg.text === text && msg.timestamp === timestamp
+      );
+      if (!exists) {
+        const senderName = (fromUserId === loggedInUserId)
+          ? "You"
+          : students.find(s => s.id === fromUserId)?.firstName || "Other";
+        chats[chatId].push({ sender: senderName, text, timestamp });
+      }
+
+      // Re-render if viewing this chat
+      if (currentUserId === chatId) {
+        renderMessages();
+      }
+    });
+
+    function renderMessages() {
+      messagesDiv.innerHTML = "";
+      if (currentUserId === null) {
+        return;
+      }
+
+      const chatArray = chats[currentUserId] || [];
+      // Sort messages by timestamp
+      chatArray.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      chatArray.forEach((msg) => {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message";
+        const date = new Date(msg.timestamp);
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        msgDiv.innerHTML = `<span>${msg.sender} (${timeStr}):</span> ${msg.text}`;
+        messagesDiv.appendChild(msgDiv);
+      });
+
+      // Scroll to bottom
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Handle user list clicks
+    userList.addEventListener("click", async function (e) {
+      if (e.target.tagName === "LI") {
+        Array.from(userList.children).forEach((li) => li.classList.remove("active"));
+        e.target.classList.add("active");
+        currentUserId = e.target.dataset.userId;
+        await fetchMessages();
+        renderMessages();
+      }
+    });
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (text === "" || currentUserId === null || !loggedInUserId) {
+        console.log('Cannot send message: missing text, recipient, or logged-in user');
+        return;
+      }
+
+      // Send message to server
+      socket.emit('chat message', {
+        text,
+        toUserId: currentUserId,
+        fromUserId: loggedInUserId,
+        timestamp: new Date().toISOString()
+      });
+      console.log(`Sent message to ${currentUserId} from ${loggedInUserId}: ${text}`);
+      messageInput.value = "";
+    }
+
+    // Fetch students
+    async function receiveStudents() {
+      try {
+        const response = await fetch("http://localhost/server/api/students/index");
+        console.log("Response status:", response.status);
+        if (!response.ok) {
+          alert(`HTTP error! Status: ${response.status}`);
+          return;
+        }
+
+        const jsonArray = await response.json();
+        console.log("Server returned:", jsonArray);
+
+        // Map to Student instances
+        students = jsonArray.map(
+          (s) => new Student(s.id, s.StudentGroup, s.firstName, s.lastName, s.gender, s.birthday)
+        );
+
+        // Initialize chats
+        students.forEach((stu) => {
+          chats[stu.id] = [];
+        });
+
+        // Set default current user and fetch messages
+        if (students.length > 0) {
+          currentUserId = students[0].id;
+          await fetchMessages();
+        }
+
+        // Build user list
+        userList.innerHTML = "";
+        students.forEach((user, index) => {
+          const li = document.createElement("li");
+          li.textContent = `${user.firstName} ${user.lastName}`;
+          li.dataset.userId = user.id;
+          if (index === 0) {
+            li.classList.add("active");
+          }
+          userList.appendChild(li);
+        });
+
+        renderMessages();
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      }
+    }
+
+    // Fetch messages from MongoDB
+    async function fetchMessages() {
+      if (!loggedInUserId || !currentUserId) {
+        console.log('Cannot fetch messages: missing loggedInUserId or currentUserId');
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/messages?userId=${loggedInUserId}&otherUserId=${currentUserId}`
+        );
+        if (!response.ok) {
+          console.error(`HTTP error! Status: ${response.status}`);
+          return;
+        }
+
+        const messages = await response.json();
+        chats[currentUserId] = messages.map(msg => ({
+          sender: msg.fromUserId === loggedInUserId
+            ? "You"
+            : students.find(s => s.id === msg.fromUserId)?.firstName || "Other",
+          text: msg.text,
+          timestamp: msg.timestamp
+        }));
+        console.log(`Fetched ${messages.length} messages for chat with ${currentUserId}`);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    }
+  </script>
+</body>
+</html>

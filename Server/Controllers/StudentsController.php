@@ -2,6 +2,11 @@
 require_once '../core/Controller.php';
 require_once '../models/Student.php';
 
+header("Access-Control-Allow-Origin: http://localhost:3000");
+// header("Access-Control-Allow-Origin: http://192.168.1.7:3000");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, X-Requested-With");
+
 class StudentsController extends Controller {
     private $studentModel;
 
@@ -22,16 +27,44 @@ class StudentsController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->jsonResponse(['error' => 'Method not allowed'], 405);
         }
-
+    
         $input = json_decode(file_get_contents('php://input'), true);
         error_log("Input: ". print_r($input, true));
-
+    
+        if (!$this->isValidName($input['firstName'])) {
+            $this->jsonResponse(['error' => 'Ім’я не повинно містити цифри або спецсимволи.'], 400);
+        }
+    
+        if (!$this->isValidName($input['lastName'])) {
+            $this->jsonResponse(['error' => 'Прізвище не повинно містити цифри або спецсимволи.'], 400);
+        }
+    
+        if (!$this->isValidDate($input['birthday'])) {
+            $this->jsonResponse(['error' => 'Невірний формат дати. Використовуйте YYYY-MM-DD.'], 400);
+        }
+    
+        if ($this->studentModel->studentExists($input['firstName'], $input['lastName'])) {
+            $this->jsonResponse(['error' => 'Такий студент вже існує'], 400);
+        }
+    
         if ($this->studentModel->create($input)) {
-            $this->jsonResponse(['message' => 'Student created'], 201);
+            $this->jsonResponse(['message' => 'Студента додано'], 201);
         } else {
-            $this->jsonResponse(['error' => 'Failed to create student'], 500);
+            $this->jsonResponse(['error' => 'Помилка при збереженні студента'], 500);
         }
     }
+
+    private function isValidName($name) {
+        return preg_match("/^[a-zA-Zа-яА-ЯіїєґІЇЄҐ' -]+$/u", $name);
+    }
+    
+    private function isValidDate($date) {
+        $d = DateTime::createFromFormat('Y-m-d', $date);
+        return $d && $d->format('Y-m-d') === $date;
+    }
+    
+    
+    
 
     public function getStudent() {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -47,19 +80,24 @@ class StudentsController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->jsonResponse(['error' => 'Method not allowed'], 405);
         }
-
+    
         $input = json_decode(file_get_contents('php://input'), true);
         error_log('Student received by controller'. print_r($input, true));
         if (!$input) {
             $this->jsonResponse(['error' => 'Invalid input'], 400);
         }
-
+    
+        if ($this->studentModel->studentExistsExceptId($input['firstName'], $input['lastName'], $input['id'])) {
+            $this->jsonResponse(['error' => 'Another student with the same data already exists'], 400);
+        }
+    
         if ($this->studentModel->update($input)) {
             $this->jsonResponse(['message' => 'Student updated']);
         } else {
             $this->jsonResponse(['error' => 'Failed to update student'], 500);
         }
     }
+
 
     public function delete() {
         if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {

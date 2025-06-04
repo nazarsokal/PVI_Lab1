@@ -63,6 +63,26 @@ class Student extends Model {
             return $stmt->execute([$id]);
         }
     }
+
+    public function studentExists($firstName, $lastName) {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM students WHERE firstName = :firstName AND lastName = :lastName');
+        $stmt->execute([
+            ':firstName' => $firstName,
+            ':lastName' => $lastName
+        ]);
+        return $stmt->fetchColumn() > 0;
+    }
+    
+    public function studentExistsExceptId($firstName, $lastName, $id) {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM students WHERE firstName = :firstName AND lastName = :lastName AND id != :id');
+        $stmt->execute([
+            ':firstName' => $firstName,
+            ':lastName' => $lastName,
+            ':id' => $id
+        ]);
+        return $stmt->fetchColumn() > 0;
+    }
+    
     
 }
 ?>

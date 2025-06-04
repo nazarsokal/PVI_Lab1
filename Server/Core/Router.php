@@ -37,5 +37,7 @@ class Router {
         echo json_encode($data);
         exit;
     }
+
+
 }
 ?>

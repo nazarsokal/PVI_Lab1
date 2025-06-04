@@ -9,8 +9,18 @@
 <body>
     <div>
         <p>Account Settings</p>
-        <p>Log Out</p>
+        <p id="logOutButton"><button onclick="logout()">Log Out</button></p>
     </div>
 </body>
 <script src="script.js"></script>
+<script>
+    function logout()
+    {
+        if (!window.parent.checkLogin()) return;
+
+        sessionStorage.removeItem("loggedInUser");
+
+        window.parent.location.reload();
+    }
+</script>
 </html>
